@@ -271,54 +271,130 @@ export default function AdminDashboard() {
     window.URL.revokeObjectURL(url);
   };
 
+  // const copyForWhatsApp = () => {
+  //   // Filter only paid RSVPs
+  //   const paidRsvps = rsvps.filter((r) => r.paymentStatus === "paid");
+
+  //   // Format the list
+  //   let message = `🎉 AHHC Family Get-Together 2026\n✅ Confirmed Attendees (Paid)\n\n`;
+
+  //   paidRsvps.forEach((rsvp, index) => {
+  //     const total = rsvp.under5 + rsvp.age5to12 + rsvp.age12plus;
+  //     message += `${index + 1}. ${rsvp.name} - ${total} ${
+  //       total === 1 ? "person" : "people"
+  //     }\n`;
+  //     message += `   • Under 5: ${rsvp.under5} | Age 5-12: ${rsvp.age5to12} | Age 12+: ${rsvp.age12plus}\n\n`;
+  //   });
+
+  //   // Add summary
+  //   const totalPeople = paidRsvps.reduce(
+  //     (sum, r) => sum + r.under5 + r.age5to12 + r.age12plus,
+  //     0
+  //   );
+  //   const totalRevenue = paidRsvps.reduce((sum, r) => sum + r.totalAmount, 0);
+
+  //   message += `━━━━━━━━━━━━━━━━\n`;
+  //   message += `📊 Total: ${paidRsvps.length} families, ${totalPeople} people\n`;
+  //   //message += `💷 Total Revenue: £${totalRevenue}`;
+
+  //   // Copy to clipboard
+  //   navigator.clipboard
+  //     .writeText(message)
+  //     .then(() => {
+  //       setMessage({
+  //         type: "success",
+  //         text: "Copied! Opening WhatsApp... 📋",
+  //       });
+  //       setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+
+  //       // Open WhatsApp
+  //       // Try to open WhatsApp app on mobile, Web WhatsApp on desktop
+  //       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  //       if (isMobile) {
+  //         // Try to open WhatsApp app with pre-filled text
+  //         window.open(
+  //           `whatsapp://send?text=${encodeURIComponent(message)}`,
+  //           "_blank"
+  //         );
+  //       } else {
+  //         // Open WhatsApp Web
+  //         window.open("https://web.whatsapp.com/", "_blank");
+  //       }
+  //     })
+  //     .catch(() => {
+  //       setMessage({
+  //         type: "error",
+  //         text: "Failed to copy. Please try again.",
+  //       });
+  //     });
+  // };
+
   const copyForWhatsApp = () => {
     // Filter only paid RSVPs
-    const paidRsvps = rsvps.filter((r) => r.paymentStatus === "paid");
+    const paidRsvps = rsvps
+      .filter((r) => r.paymentStatus === "paid")
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Sort by date
 
-    // Format the list
-    let message = `🎉 AHHC Family Get-Together 2026\n✅ Confirmed Attendees (Paid)\n\n`;
+    // Header
+    //let message = `🎉 *AHHC Get-Together 2026*\n`;
+    // message += `📅 17th January 2026 | 1:00 PM - 8:00 PM\n`;
+    //message += `📍 St Wilfred School, Crawley\n\n`;
+    //message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    let message = `✅ *CONFIRMED ATTENDEES (PAID)*\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
 
+    // List each attendee
     paidRsvps.forEach((rsvp, index) => {
       const total = rsvp.under5 + rsvp.age5to12 + rsvp.age12plus;
-      message += `${index + 1}. ${rsvp.name} - ${total} ${
-        total === 1 ? "person" : "people"
-      }\n`;
-      message += `   • Under 5: ${rsvp.under5} | Age 5-12: ${rsvp.age5to12} | Age 12+: ${rsvp.age12plus}\n\n`;
+      const date = new Date(rsvp.createdAt).toLocaleDateString("en-GB");
+
+      message += `*${index + 1}. ${rsvp.name}*\n`;
+      //message += `📞 ${rsvp.phone}\n`;
+      //if (rsvp.email) message += `📧 ${rsvp.email}\n`;
+      message += `👥 U5: ${rsvp.under5} | 5-12: ${rsvp.age5to12} | 12+: ${rsvp.age12plus} *(${total} people)*\n\n`;
+      //message += `💷 £${rsvp.totalAmount}`;
+      //if (rsvp.paymentReference) message += ` | Ref: ${rsvp.paymentReference}`;
+      //message += `\n📅 ${date}\n\n`;
     });
 
-    // Add summary
+    // Summary
     const totalPeople = paidRsvps.reduce(
       (sum, r) => sum + r.under5 + r.age5to12 + r.age12plus,
       0
     );
     const totalRevenue = paidRsvps.reduce((sum, r) => sum + r.totalAmount, 0);
+    const totalUnder5 = paidRsvps.reduce((sum, r) => sum + r.under5, 0);
+    const totalAge5to12 = paidRsvps.reduce((sum, r) => sum + r.age5to12, 0);
+    const totalAge12plus = paidRsvps.reduce((sum, r) => sum + r.age12plus, 0);
 
-    message += `━━━━━━━━━━━━━━━━\n`;
-    message += `📊 Total: ${paidRsvps.length} families, ${totalPeople} people\n`;
-    //message += `💷 Total Revenue: £${totalRevenue}`;
+    message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `📊 *SUMMARY*\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `👨‍👩‍👧‍👦 Total Families: ${paidRsvps.length}\n`;
+    message += `👥 Total People: ${totalPeople}\n`;
+    message += `   • Under 5: ${totalUnder5}\n`;
+    message += `   • Age 5-12: ${totalAge5to12}\n`;
+    message += `   • Age 12+: ${totalAge12plus}\n`;
+    // message += `💷 Total Revenue: £${totalRevenue}\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    // message += `_Generated: ${new Date().toLocaleString("en-GB")}_`;
 
-    // Copy to clipboard
+    // Copy to clipboard and open WhatsApp
     navigator.clipboard
       .writeText(message)
       .then(() => {
-        setMessage({
-          type: "success",
-          text: "Copied! Opening WhatsApp... 📋",
-        });
+        setMessage({ type: "success", text: "Copied! Opening WhatsApp... 📋" });
         setTimeout(() => setMessage({ type: "", text: "" }), 3000);
 
-        // Open WhatsApp
-        // Try to open WhatsApp app on mobile, Web WhatsApp on desktop
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         if (isMobile) {
-          // Try to open WhatsApp app with pre-filled text
           window.open(
             `whatsapp://send?text=${encodeURIComponent(message)}`,
             "_blank"
           );
         } else {
-          // Open WhatsApp Web
           window.open("https://web.whatsapp.com/", "_blank");
         }
       })
