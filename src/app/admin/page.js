@@ -303,9 +303,24 @@ export default function AdminDashboard() {
       .then(() => {
         setMessage({
           type: "success",
-          text: "Copied to clipboard! Ready to paste in WhatsApp 📋",
+          text: "Copied! Opening WhatsApp... 📋",
         });
         setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+
+        // Open WhatsApp
+        // Try to open WhatsApp app on mobile, Web WhatsApp on desktop
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (isMobile) {
+          // Try to open WhatsApp app with pre-filled text
+          window.open(
+            `whatsapp://send?text=${encodeURIComponent(message)}`,
+            "_blank"
+          );
+        } else {
+          // Open WhatsApp Web
+          window.open("https://web.whatsapp.com/", "_blank");
+        }
       })
       .catch(() => {
         setMessage({
