@@ -342,7 +342,8 @@ export default function AdminDashboard() {
     //message += `📍 St Wilfred School, Crawley\n\n`;
     //message += `━━━━━━━━━━━━━━━━━━━━\n`;
     let message = `✅ *CONFIRMED ATTENDEES (PAID)*\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    //message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    message += `━━━━━━━━━━━━━━━━\n\n`;
 
     // List each attendee
     paidRsvps.forEach((rsvp, index) => {
@@ -368,16 +369,19 @@ export default function AdminDashboard() {
     const totalAge5to12 = paidRsvps.reduce((sum, r) => sum + r.age5to12, 0);
     const totalAge12plus = paidRsvps.reduce((sum, r) => sum + r.age12plus, 0);
 
-    message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    //message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `━━━━━━━━━━━━━━━━\n`;
     message += `📊 *SUMMARY*\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    //message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `━━━━━━━━━━━━━━━━\n`;
     message += `👨‍👩‍👧‍👦 Total Families: ${paidRsvps.length}\n`;
     message += `👥 Total People: ${totalPeople}\n`;
     message += `   • Under 5: ${totalUnder5}\n`;
     message += `   • Age 5-12: ${totalAge5to12}\n`;
     message += `   • Age 12+: ${totalAge12plus}\n`;
     // message += `💷 Total Revenue: £${totalRevenue}\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    //message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+    message += `━━━━━━━━━━━━━━━━\n\n`;
     // message += `_Generated: ${new Date().toLocaleString("en-GB")}_`;
 
     // Copy to clipboard and open WhatsApp
