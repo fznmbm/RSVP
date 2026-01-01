@@ -3,60 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// chatgpt generated admin dashboard code starts here
-
-import { createPortal } from "react-dom";
-import { useEffect, useRef, useState } from "react";
-
-function PortalDropdown({ triggerRef, open, onClose, children }) {
-  const dropdownRef = useRef(null);
-  const [style, setStyle] = useState({});
-
-  useEffect(() => {
-    if (!open || !triggerRef.current) return;
-
-    const rect = triggerRef.current.getBoundingClientRect();
-
-    setStyle({
-      position: "absolute",
-      top: rect.bottom + window.scrollY + 8,
-      left: rect.left + window.scrollX,
-      minWidth: rect.width,
-      zIndex: 10000,
-    });
-  }, [open, triggerRef]);
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target) &&
-        !triggerRef.current.contains(e.target)
-      ) {
-        onClose();
-      }
-    }
-
-    if (open) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open, onClose, triggerRef]);
-
-  if (!open) return null;
-
-  return createPortal(
-    <div
-      ref={dropdownRef}
-      style={style}
-      className="rounded-lg border border-slate-700 bg-slate-900 shadow-xl"
-    >
-      {children}
-    </div>,
-    document.body
-  );
-}
-
-// chatgpt generated admin dashboard code ends here
-
 export default function AdminDashboard() {
   const [rsvps, setRsvps] = useState([]);
   const [stats, setStats] = useState(null);
@@ -137,6 +83,41 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       setMessage({ type: "error", text: "Failed to update status" });
+    }
+  };
+
+  const bulkUpdateStatus = async (status) => {
+    if (selectedRows.length === 0) return;
+
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      // Update all selected RSVPs
+      const updatePromises = selectedRows.map((id) =>
+        fetch("/api/admin/rsvps", {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, paymentStatus: status }),
+        })
+      );
+
+      await Promise.all(updatePromises);
+
+      setMessage({
+        type: "success",
+        text: `${selectedRows.length} RSVP${
+          selectedRows.length > 1 ? "s" : ""
+        } marked as ${status}`,
+      });
+
+      fetchRsvps(search);
+      setSelectedRows([]);
+      setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to update RSVPs" });
     }
   };
 
@@ -226,7 +207,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // Filter and sort RSVPs
   const filteredRsvps = rsvps
     .filter(
       (rsvp) => statusFilter === "all" || rsvp.paymentStatus === statusFilter
@@ -257,143 +237,49 @@ export default function AdminDashboard() {
     });
 
   const getStatusBadge = (status, rsvpId) => {
-    const badges = {
-      pending: { icon: "⏳", color: "#f59e0b", text: "Pending" },
-      paid: { icon: "✅", color: "#10b981", text: "Paid" },
-    };
-
-    const badge = badges[status] || badges.pending;
-
     return (
-      <div
+      <select
+        value={status}
+        onChange={(e) => updatePaymentStatus(rsvpId, e.target.value)}
         style={{
-          position: "relative",
-          zIndex: statusDropdownOpen === rsvpId ? 1001 : 1,
+          padding: "8px 16px",
+          borderRadius: "6px",
+          fontSize: "0.875rem",
+          fontWeight: "600",
+          backgroundColor: "#374151",
+          color: status === "pending" ? "#f59e0b" : "#10b981",
+          border: "1px solid #4b5563",
+          cursor: "pointer",
+          outline: "none",
+          minWidth: "130px",
+          appearance: "none",
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "right 8px center",
+          paddingRight: "32px",
         }}
       >
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setStatusDropdownOpen(
-              statusDropdownOpen === rsvpId ? null : rsvpId
-            );
-          }}
+        <option
+          value="pending"
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "8px 16px",
-            borderRadius: "6px",
-            fontSize: "0.8rem",
-            fontWeight: "600",
-            backgroundColor: "#374151",
-            color: badge.color,
-            border: "1px solid #4b5563",
-            cursor: "pointer",
-            minWidth: "120px",
-            justifyContent: "center",
+            backgroundColor: "#ffffff",
+            color: "#1f2937",
+            padding: "10px",
           }}
         >
-          <span style={{ fontSize: "0.9rem" }}>{badge.icon}</span>
-          <span>{badge.text}</span>
-          <span style={{ fontSize: "0.6rem", opacity: 0.6 }}>▼</span>
-        </button>
-
-        {statusDropdownOpen === rsvpId && (
-          <>
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 1000,
-              }}
-              onClick={() => setStatusDropdownOpen(null)}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: "calc(100% + 8px)",
-                left: "0",
-                background: "#ffffff",
-                borderRadius: "8px",
-                boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-                padding: "8px",
-                minWidth: "150px",
-                zIndex: 1001,
-                border: "1px solid #d1d5db",
-              }}
-            >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updatePaymentStatus(rsvpId, "pending");
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "#ffffff",
-                  border: "none",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  borderRadius: "6px",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#1f2937",
-                  marginBottom: "4px",
-                  transition: "background 0.15s",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#f3f4f6")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "#ffffff")
-                }
-              >
-                <span style={{ fontSize: "1rem" }}>⏳</span>
-                <span>Pending</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updatePaymentStatus(rsvpId, "paid");
-                }}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "#ffffff",
-                  border: "none",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  borderRadius: "6px",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#1f2937",
-                  transition: "background 0.15s",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#f3f4f6")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "#ffffff")
-                }
-              >
-                <span style={{ fontSize: "1rem" }}>✅</span>
-                <span>Paid</span>
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+          ⏳ Pending
+        </option>
+        <option
+          value="paid"
+          style={{
+            backgroundColor: "#ffffff",
+            color: "#1f2937",
+            padding: "10px",
+          }}
+        >
+          ✅ Paid
+        </option>
+      </select>
     );
   };
 
@@ -956,6 +842,7 @@ export default function AdminDashboard() {
               </span>
               <div style={{ display: "flex", gap: "8px" }}>
                 <button
+                  onClick={() => bulkUpdateStatus("paid")}
                   style={{
                     padding: "6px 12px",
                     background: "#3b82f6",
@@ -994,11 +881,10 @@ export default function AdminDashboard() {
             background: "#1f2937",
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-
             border: "1px solid #374151",
           }}
         >
-          <div style={{ overflowX: "auto", overflowY: "visible" }}>
+          <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead
                 style={{
@@ -1170,7 +1056,6 @@ export default function AdminDashboard() {
                               width: "40px",
                               height: "40px",
                               borderRadius: "50%",
-                              //background: "#667eea",
                               backgroundColor: "#374151",
                               display: "flex",
                               alignItems: "center",
