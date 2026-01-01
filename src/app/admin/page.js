@@ -2177,6 +2177,37 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      <div
+        style={{
+          textAlign: "center",
+          padding: "32px 16px",
+          marginTop: "40px",
+          borderTop: "1px solid #374151",
+        }}
+      >
+        <p style={{ color: "#6b7280", fontSize: "0.875rem", margin: 0 }}>
+          Developed by{" "}
+          <a
+            href="https://elitestack.co.uk"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: "#667eea",
+              textDecoration: "none",
+              fontWeight: "600",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.textDecoration = "underline")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.textDecoration = "none")
+            }
+          >
+            EliteStack.co.uk
+          </a>
+        </p>
+      </div>
+
       <style jsx>{`
         @media (max-width: 768px) {
           .desktop-table {

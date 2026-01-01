@@ -945,6 +945,28 @@ export default function Home() {
               Admin Login
             </a>
           </p>
+
+          <p
+            style={{
+              margin: "16px 0 0 0",
+              paddingTop: "16px",
+              borderTop: "1px solid #374151",
+            }}
+          >
+            Designed & Developed by{" "}
+            <a
+              href="https://elitestack.co.uk"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#667eea",
+                textDecoration: "none",
+                fontWeight: "600",
+              }}
+            >
+              EliteStack.co.uk
+            </a>
+          </p>
         </div>
       </div>
     </div>
