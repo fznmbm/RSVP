@@ -23,7 +23,8 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
-    "src/app/api/rsvp/route.js"
+    "src/app/api/rsvp/route.js",
+    "src/app/api/checkin/page.js"
   ],
   "exclude": ["node_modules"]
 }

@@ -99,6 +99,7 @@ export default function Home() {
 
   const totalAmount = calculateTotal();
   const deadlinePassed = deadlineInfo?.deadlinePassed || false;
+  //const deadlinePassed = "2026-01-01T22:00:00.000Z" < new Date().toISOString();
 
   if (loadingDeadline) {
     return (

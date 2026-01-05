@@ -1,14 +1,14 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const RsvpSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please provide your name'],
+    required: [true, "Please provide your name"],
     trim: true,
   },
   phone: {
     type: String,
-    required: [true, 'Please provide your phone number'],
+    required: [true, "Please provide your phone number"],
     trim: true,
   },
   email: {
@@ -41,10 +41,27 @@ const RsvpSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'confirmed'],
-    default: 'pending',
+    enum: ["pending", "paid", "confirmed"],
+    default: "pending",
   },
   notes: {
+    type: String,
+    trim: true,
+  },
+  // QR Check-in fields (NEW)
+  checkInCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  checkedIn: {
+    type: Boolean,
+    default: false,
+  },
+  checkInTime: {
+    type: Date,
+  },
+  checkInBy: {
     type: String,
     trim: true,
   },
@@ -54,10 +71,20 @@ const RsvpSchema = new mongoose.Schema({
   },
 });
 
-// Calculate total amount before saving
-RsvpSchema.pre('save', function(next) {
-  this.totalAmount = (this.age5to12 * 10) + (this.age12plus * 15);
+// Calculate total amount AND generate QR code before saving
+RsvpSchema.pre("save", function (next) {
+  // Calculate total amount
+  this.totalAmount = this.age5to12 * 10 + this.age12plus * 15;
+
+  // Generate QR code if payment status is paid and code doesn't exist
+  if (this.paymentStatus === "paid" && !this.checkInCode) {
+    this.checkInCode = `AHHC${Date.now()}${Math.random()
+      .toString(36)
+      .substr(2, 5)
+      .toUpperCase()}`;
+  }
+
   next();
 });
 
-export default mongoose.models.Rsvp || mongoose.model('Rsvp', RsvpSchema);
+export default mongoose.models.Rsvp || mongoose.model("Rsvp", RsvpSchema);
