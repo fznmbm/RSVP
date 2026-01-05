@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import dbConnect from "../../../../lib/mongodb";
-import Rsvp from "../../../../models/Rsvp";
+import dbConnect from "../../../lib/mongodb";
+import Rsvp from "../../../models/Rsvp";
 
 // GET - Get RSVP info by check-in code
 export async function GET(request) {
