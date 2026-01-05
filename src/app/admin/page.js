@@ -674,7 +674,7 @@ export default function AdminDashboard() {
   return (
     <div style={{ minHeight: "100vh", background: "#111827", padding: "16px" }}>
       <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        {/* Header - Mobile Responsive */}
+        {/* Header - Mobile Optimized */}
         <div
           style={{
             background: "#1f2937",
@@ -685,173 +685,131 @@ export default function AdminDashboard() {
             border: "1px solid #374151",
           }}
         >
+          {/* Title */}
+          <div style={{ marginBottom: "16px" }}>
+            <h1
+              style={{
+                fontSize: "clamp(1.25rem, 5vw, 1.75rem)",
+                fontWeight: "700",
+                color: "#f9fafb",
+                marginBottom: "4px",
+              }}
+            >
+              📊 RSVP Management
+            </h1>
+            <p style={{ color: "#9ca3af", fontSize: "0.875rem", margin: 0 }}>
+              AHHC Family Get-Together 2026
+            </p>
+          </div>
+
+          {/* Mode Toggle - Horizontal on Mobile */}
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "12px",
+              gap: "6px",
+              background: "#111827",
+              padding: "4px",
+              borderRadius: "10px",
+              border: "1px solid #374151",
+              marginBottom: "12px",
             }}
           >
-            <div
+            <button
+              onClick={() => setCheckInMode(false)}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "16px",
-                flexWrap: "wrap",
+                flex: 1,
+                padding: "10px",
+                background: !checkInMode ? "#667eea" : "transparent",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+                transition: "all 0.2s",
               }}
             >
-              <div>
-                <h1
-                  style={{
-                    fontSize: "clamp(1.25rem, 4vw, 1.875rem)",
-                    fontWeight: "700",
-                    color: "#f9fafb",
-                    marginBottom: "4px",
-                  }}
-                >
-                  📊 RSVP Management
-                </h1>
-                <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
-                  AHHC Family Get-Together 2026
-                </p>
-              </div>
-
-              {/* MODE TOGGLE */}
-              <div
-                style={{
-                  display: "flex",
-                  gap: "4px",
-                  background: "#111827",
-                  padding: "4px",
-                  borderRadius: "12px",
-                  border: "1px solid #374151",
-                }}
-              >
-                <button
-                  onClick={() => setCheckInMode(false)}
-                  style={{
-                    padding: "10px 20px",
-                    background: !checkInMode ? "#667eea" : "transparent",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  📊 Admin Mode
-                </button>
-                <button
-                  onClick={() => setCheckInMode(true)}
-                  style={{
-                    padding: "10px 20px",
-                    background: checkInMode ? "#10b981" : "transparent",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  🎫 Check-In Mode
-                </button>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: "8px", width: "100%" }}>
-              {/* <button
-                onClick={exportToCSV}
-                style={{
-                  flex: "1",
-                  padding: "10px 12px",
-                  background: "#667eea",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                }}
-              >
-                📥 Export CSV
-              </button> */}
-
-              <div style={{ display: "flex", gap: "8px", width: "100%" }}>
-                <button
-                  onClick={copyForWhatsApp}
-                  style={{
-                    flex: "1",
-                    padding: "10px 12px",
-                    background: "#10b981",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  💬 WhatsApp
-                </button>
-                <button
-                  onClick={exportToCSV}
-                  style={{
-                    flex: "1",
-                    padding: "10px 12px",
-                    background: "#667eea",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  📥 Export
-                </button>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    flex: "1",
-                    padding: "10px 12px",
-                    background: "#374151",
-                    color: "#f3f4f6",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
-              {/* 
-              <button
-                onClick={handleLogout}
-                style={{
-                  flex: "1",
-                  padding: "10px 12px",
-                  background: "#374151",
-                  color: "#f3f4f6",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                }}
-              >
-                Logout
-              </button> */}
-            </div>
+              📊 Admin
+            </button>
+            <button
+              onClick={() => setCheckInMode(true)}
+              style={{
+                flex: 1,
+                padding: "10px",
+                background: checkInMode ? "#10b981" : "transparent",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+                transition: "all 0.2s",
+              }}
+            >
+              🎫 Check-In
+            </button>
           </div>
+
+          {/* Action Buttons - Compact */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "8px",
+            }}
+          >
+            <button
+              onClick={copyForWhatsApp}
+              style={{
+                padding: "10px",
+                background: "#10b981",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              💬 WhatsApp
+            </button>
+            <button
+              onClick={exportToCSV}
+              style={{
+                padding: "10px",
+                background: "#667eea",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              📥 Export
+            </button>
+          </div>
+
+          {/* Logout - Full Width Below */}
+          <button
+            onClick={handleLogout}
+            style={{
+              width: "100%",
+              marginTop: "8px",
+              padding: "10px",
+              background: "#374151",
+              color: "#f3f4f6",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+          >
+            🚪 Logout
+          </button>
         </div>
+
         {/* Message */}
         {message.text && (
           <div
@@ -872,6 +830,7 @@ export default function AdminDashboard() {
         {/* Stats Cards - Responsive Grid */}
         {stats && !checkInMode && (
           <div
+            className="stats-grid" // ADD THIS
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -1028,334 +987,400 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Check-In Stats - Enhanced for Check-In Mode */}
+        {/* Unified Check-In Section - Single Source of Truth */}
         <div
           style={{
             background: checkInMode
-              ? "linear-gradient(135deg, #1f2937 0%, #111827 100%)"
+              ? "linear-gradient(135deg, #064e3b 0%, #047857 100%)"
               : "#1f2937",
-            borderRadius: checkInMode ? "20px" : "12px",
-            padding: checkInMode ? "40px" : "20px",
+            borderRadius: "16px",
+            padding: checkInMode ? "32px" : "20px",
             marginBottom: "20px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+            boxShadow: checkInMode
+              ? "0 8px 24px rgba(16, 185, 129, 0.3)"
+              : "0 1px 3px rgba(0,0,0,0.3)",
             border: checkInMode ? "2px solid #10b981" : "1px solid #374151",
             textAlign: checkInMode ? "center" : "left",
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          {checkInMode ? (
-            // CHECK-IN MODE LAYOUT
-            <>
-              <div
-                style={{
-                  fontSize: "1rem",
-                  color: "#9ca3af",
-                  textTransform: "uppercase",
-                  letterSpacing: "2px",
-                  marginBottom: "24px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: "#10b981",
-                    animation: "pulse 2s infinite",
-                  }}
-                />
-                🟢 LIVE CHECK-IN MODE
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "baseline",
-                  gap: "24px",
-                  marginBottom: "32px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontSize: "4rem",
-                      fontWeight: "700",
-                      color: "#10b981",
-                      lineHeight: "1",
-                    }}
-                  >
-                    {checkInStats.checkedIn}
-                  </div>
-                  <div
-                    style={{
-                      color: "#9ca3af",
-                      fontSize: "0.875rem",
-                      marginTop: "8px",
-                    }}
-                  >
-                    Checked In
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    fontSize: "3rem",
-                    color: "#4b5563",
-                  }}
-                >
-                  /
-                </div>
-
-                <div>
-                  <div
-                    style={{
-                      fontSize: "4rem",
-                      fontWeight: "700",
-                      color: "#6b7280",
-                      lineHeight: "1",
-                    }}
-                  >
-                    {checkInStats.total}
-                  </div>
-                  <div
-                    style={{
-                      color: "#9ca3af",
-                      fontSize: "0.875rem",
-                      marginTop: "8px",
-                    }}
-                  >
-                    Total
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div
-                style={{
-                  width: "100%",
-                  maxWidth: "600px",
-                  margin: "0 auto 24px",
-                  height: "24px",
-                  background: "#374151",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    width: `${checkInStats.percentage}%`,
-                    height: "100%",
-                    background: "linear-gradient(90deg, #10b981, #059669)",
-                    transition: "width 0.5s ease",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    paddingRight: "16px",
-                  }}
-                >
-                  {checkInStats.percentage > 15 && (
-                    <span
-                      style={{
-                        color: "white",
-                        fontWeight: "700",
-                        fontSize: "0.875rem",
-                      }}
-                    >
-                      {checkInStats.percentage}%
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* BIG Scanner Button */}
-              <button
-                onClick={() => router.push("/checkin")}
-                style={{
-                  width: "100%",
-                  maxWidth: "500px",
-                  padding: "32px",
-                  background:
-                    "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                  border: "none",
-                  borderRadius: "16px",
-                  color: "white",
-                  fontSize: "1.75rem",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  marginBottom: "16px",
-                  boxShadow: "0 8px 24px rgba(16, 185, 129, 0.4)",
-                  animation: "pulse 2s infinite",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "16px",
-                  margin: "0 auto 16px",
-                }}
-              >
-                📷 SCAN QR CODE
-              </button>
-
-              <button
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                style={{
-                  padding: "12px 24px",
-                  background: autoRefresh ? "#667eea" : "#374151",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                }}
-              >
-                <div
-                  style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: autoRefresh ? "#10b981" : "#6b7280",
-                    animation: autoRefresh ? "pulse 2s infinite" : "none",
-                  }}
-                />
-                {autoRefresh ? "🔴 LIVE" : "⏸️ Paused"}
-              </button>
-            </>
-          ) : (
-            // ADMIN MODE LAYOUT (existing)
+          {/* Background decoration for check-in mode */}
+          {checkInMode && (
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "16px",
+                position: "absolute",
+                top: "-50%",
+                right: "-10%",
+                width: "300px",
+                height: "300px",
+                background:
+                  "radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)",
+                borderRadius: "50%",
+                pointerEvents: "none",
               }}
-            >
-              <div style={{ flex: 1 }}>
-                <h3
+            />
+          )}
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {checkInMode ? (
+              // CHECK-IN MODE - Big & Bold
+              <>
+                <div
                   style={{
-                    fontSize: "1.125rem",
+                    fontSize: "0.875rem",
+                    color: "#d1fae5",
+                    textTransform: "uppercase",
+                    letterSpacing: "2px",
+                    marginBottom: "20px",
                     fontWeight: "600",
-                    color: "#f9fafb",
-                    marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
                   }}
                 >
-                  🎫 Check-In Status
-                </h3>
+                  <div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: "#10b981",
+                      animation: "pulse 2s infinite",
+                    }}
+                  />
+                  🔴 LIVE EVENT CHECK-IN
+                </div>
+
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "center",
-                    gap: "16px",
-                    marginBottom: "12px",
+                    justifyContent: "center",
+                    alignItems: "baseline",
+                    gap: "20px",
+                    marginBottom: "24px",
+                    flexWrap: "wrap",
                   }}
                 >
                   <div>
                     <div
                       style={{
-                        color: "#9ca3af",
-                        fontSize: "0.75rem",
-                        marginBottom: "4px",
+                        fontSize: "clamp(3rem, 8vw, 4.5rem)",
+                        fontWeight: "800",
+                        color: "#10b981",
+                        lineHeight: "1",
+                        textShadow: "0 2px 10px rgba(16, 185, 129, 0.3)",
+                      }}
+                    >
+                      {checkInStats.checkedIn}
+                    </div>
+                    <div
+                      style={{
+                        color: "#d1fae5",
+                        fontSize: "0.875rem",
+                        marginTop: "8px",
+                        fontWeight: "500",
                       }}
                     >
                       Checked In
                     </div>
-                    <div
-                      style={{
-                        fontSize: "2rem",
-                        fontWeight: "700",
-                        color: "#10b981",
-                      }}
-                    >
-                      {checkInStats.checkedIn} / {checkInStats.total}
-                    </div>
                   </div>
+
                   <div
                     style={{
-                      fontSize: "2.5rem",
-                      fontWeight: "700",
-                      color: "#667eea",
+                      fontSize: "3rem",
+                      color: "#6ee7b7",
+                      fontWeight: "300",
                     }}
                   >
-                    {checkInStats.percentage}%
+                    /
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "clamp(3rem, 8vw, 4.5rem)",
+                        fontWeight: "800",
+                        color: "#d1fae5",
+                        lineHeight: "1",
+                      }}
+                    >
+                      {checkInStats.total}
+                    </div>
+                    <div
+                      style={{
+                        color: "#d1fae5",
+                        fontSize: "0.875rem",
+                        marginTop: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Total Guests
+                    </div>
                   </div>
                 </div>
 
+                {/* Progress Bar */}
                 <div
                   style={{
                     width: "100%",
-                    height: "8px",
-                    background: "#374151",
-                    borderRadius: "4px",
+                    maxWidth: "500px",
+                    margin: "0 auto 24px",
+                    height: "20px",
+                    background: "rgba(0, 0, 0, 0.3)",
+                    borderRadius: "10px",
                     overflow: "hidden",
+                    boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.2)",
                   }}
                 >
                   <div
                     style={{
                       width: `${checkInStats.percentage}%`,
                       height: "100%",
-                      background: "linear-gradient(90deg, #10b981, #667eea)",
-                      transition: "width 0.5s",
+                      background: "linear-gradient(90deg, #10b981, #34d399)",
+                      transition: "width 0.5s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      paddingRight: "12px",
+                      position: "relative",
+                    }}
+                  >
+                    {checkInStats.percentage > 10 && (
+                      <span
+                        style={{
+                          color: "white",
+                          fontWeight: "700",
+                          fontSize: "0.75rem",
+                          textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+                        }}
+                      >
+                        {checkInStats.percentage}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Primary Action Button */}
+                <button
+                  onClick={() => router.push("/checkin")}
+                  style={{
+                    width: "100%",
+                    maxWidth: "400px",
+                    padding: "20px 32px",
+                    background: "white",
+                    border: "none",
+                    borderRadius: "12px",
+                    color: "#047857",
+                    fontSize: "1.25rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    marginBottom: "16px",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "12px",
+                    margin: "0 auto 16px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 6px 16px rgba(0, 0, 0, 0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 12px rgba(0, 0, 0, 0.2)";
+                  }}
+                >
+                  <span style={{ fontSize: "1.5rem" }}>📷</span>
+                  OPEN SCANNER
+                </button>
+
+                {/* Live Toggle */}
+                <button
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  style={{
+                    padding: "10px 20px",
+                    background: "rgba(255, 255, 255, 0.15)",
+                    color: "white",
+                    border: "2px solid rgba(255, 255, 255, 0.3)",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      "rgba(255, 255, 255, 0.25)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background =
+                      "rgba(255, 255, 255, 0.15)";
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: autoRefresh ? "#34d399" : "#6b7280",
+                      animation: autoRefresh ? "pulse 2s infinite" : "none",
                     }}
                   />
-                </div>
-              </div>
-
-              <button
-                onClick={() => router.push("/checkin")}
+                  {autoRefresh ? "🔴 LIVE" : "⏸️ PAUSED"}
+                </button>
+              </>
+            ) : (
+              // ADMIN MODE - Compact
+              <div
                 style={{
-                  padding: "12px 20px",
-                  background: "#10b981",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "1rem",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                📱 Open Scanner
-              </button>
-
-              <button
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                style={{
-                  padding: "12px 20px",
-                  background: autoRefresh ? "#667eea" : "#374151",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                  whiteSpace: "nowrap",
                   display: "flex",
+                  justifyContent: "space-between",
                   alignItems: "center",
-                  gap: "8px",
+                  flexWrap: "wrap",
+                  gap: "16px",
                 }}
               >
+                <div style={{ flex: 1, minWidth: "200px" }}>
+                  <h3
+                    style={{
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      color: "#f9fafb",
+                      marginBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    🎫 Check-In Progress
+                  </h3>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: "12px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "2.5rem",
+                        fontWeight: "700",
+                        color: "#10b981",
+                        lineHeight: "1",
+                      }}
+                    >
+                      {checkInStats.checkedIn}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1.25rem",
+                        color: "#6b7280",
+                      }}
+                    >
+                      / {checkInStats.total}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "2rem",
+                        fontWeight: "700",
+                        color: "#667eea",
+                        marginLeft: "auto",
+                      }}
+                    >
+                      {checkInStats.percentage}%
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      background: "#374151",
+                      borderRadius: "4px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${checkInStats.percentage}%`,
+                        height: "100%",
+                        background: "linear-gradient(90deg, #10b981, #667eea)",
+                        transition: "width 0.5s",
+                      }}
+                    />
+                  </div>
+                </div>
+
                 <div
                   style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: autoRefresh ? "#10b981" : "#6b7280",
-                    animation: autoRefresh ? "pulse 2s infinite" : "none",
+                    display: "flex",
+                    gap: "8px",
+                    flexWrap: "wrap",
                   }}
-                />
-                {autoRefresh ? "🔴 LIVE" : "⏸️ Paused"}
-              </button>
-            </div>
-          )}
+                >
+                  <button
+                    onClick={() => router.push("/checkin")}
+                    style={{
+                      padding: "16px 24px",
+                      background: "#10b981",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      fontSize: "1rem",
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    📷 OPEN SCANNER
+                  </button>
+
+                  <button
+                    onClick={() => setAutoRefresh(!autoRefresh)}
+                    style={{
+                      padding: "12px 20px",
+                      background: autoRefresh ? "#667eea" : "#374151",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: autoRefresh ? "#10b981" : "#6b7280",
+                        animation: autoRefresh ? "pulse 2s infinite" : "none",
+                      }}
+                    />
+                    {autoRefresh ? "LIVE" : "Paused"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Deadline Control Section */}
@@ -2124,6 +2149,66 @@ export default function AdminDashboard() {
                                   }
                                   title="Click to download"
                                 />
+
+                                {/* ADD THIS: WhatsApp Send Button */}
+                                <button
+                                  onClick={() => {
+                                    // Convert data URL to blob
+                                    fetch(qrCodeUrls[rsvp._id])
+                                      .then((res) => res.blob())
+                                      .then((blob) => {
+                                        const file = new File(
+                                          [blob],
+                                          `QR-${rsvp.name}.png`,
+                                          { type: "image/png" }
+                                        );
+
+                                        // Check if Web Share API is available
+                                        if (
+                                          navigator.share &&
+                                          navigator.canShare &&
+                                          navigator.canShare({ files: [file] })
+                                        ) {
+                                          navigator
+                                            .share({
+                                              files: [file],
+                                              title: `QR Code for ${rsvp.name}`,
+                                              text: `Check-in QR code for ${rsvp.name} - AHHC Family Get-Together`,
+                                            })
+                                            .catch((err) =>
+                                              console.log("Share cancelled")
+                                            );
+                                        } else {
+                                          // Fallback: Open WhatsApp Web
+                                          const message = encodeURIComponent(
+                                            `QR Code for ${rsvp.name} - AHHC Family Get-Together\nCode: ${rsvp.checkInCode}`
+                                          );
+                                          window.open(
+                                            `https://wa.me/?text=${message}`,
+                                            "_blank"
+                                          );
+                                        }
+                                      });
+                                  }}
+                                  style={{
+                                    marginTop: "6px",
+                                    padding: "6px 10px",
+                                    background: "#10b981",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    fontSize: "0.7rem",
+                                    cursor: "pointer",
+                                    fontWeight: "600",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    width: "100%",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  💬 Send
+                                </button>
                               </div>
                             )}
 
@@ -2595,63 +2680,54 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                {/* ADD THIS ENTIRE QR CODE SECTION: */}
+                {/* QR CODE SECTION - Optimized Layout */}
                 {rsvp.paymentStatus === "paid" && rsvp.checkInCode && (
                   <div
                     style={{
-                      marginTop: "12px",
-                      paddingTop: "12px",
+                      marginTop: "16px",
+                      paddingTop: "16px",
                       borderTop: "1px solid #374151",
                     }}
                   >
+                    {/* Section Header */}
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#9ca3af",
+                        marginBottom: "12px",
+                        fontWeight: "600",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      🎫 Check-In QR Code
+                    </div>
+
+                    {/* Main Content: QR + Buttons */}
                     <div
                       style={{
                         display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        flexWrap: "wrap",
+                        alignItems: "stretch",
                         gap: "12px",
                       }}
                     >
-                      {/* Left side - Status and QR image */}
+                      {/* LEFT SIDE: QR Code + Status */}
                       <div
                         style={{
                           display: "flex",
+                          flexDirection: "column",
                           alignItems: "center",
-                          gap: "12px",
+                          gap: "8px",
                         }}
                       >
-                        <div>
-                          <div
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "#9ca3af",
-                              marginBottom: "4px",
-                              fontWeight: "600",
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            Check-In
-                          </div>
-                          <div
-                            style={{
-                              fontSize: "0.875rem",
-                              color: rsvp.checkedIn ? "#10b981" : "#f59e0b",
-                              fontWeight: "600",
-                            }}
-                          >
-                            {rsvp.checkedIn ? "✅ Checked" : "⏳ Pending"}
-                          </div>
-                        </div>
-
                         {/* QR Code Image */}
                         {qrCodeUrls[rsvp._id] && (
                           <img
                             src={qrCodeUrls[rsvp._id]}
                             alt="QR"
                             style={{
-                              width: "60px",
-                              height: "60px",
+                              width: "80px",
+                              height: "80px",
                               border: "2px solid #374151",
                               borderRadius: "8px",
                               cursor: "pointer",
@@ -2659,34 +2735,163 @@ export default function AdminDashboard() {
                             onClick={() =>
                               downloadQrCode(rsvp.name, qrCodeUrls[rsvp._id])
                             }
+                            title="Tap to download"
                           />
                         )}
+
+                        {/* Status Badge */}
+                        <div
+                          style={{
+                            padding: "4px 8px",
+                            background: rsvp.checkedIn
+                              ? "linear-gradient(135deg, #064e3b, #047857)"
+                              : "linear-gradient(135deg, #78350f, #92400e)",
+                            border: `2px solid ${
+                              rsvp.checkedIn ? "#10b981" : "#f59e0b"
+                            }`,
+                            borderRadius: "6px",
+                            fontSize: "0.7rem",
+                            fontWeight: "700",
+                            color: rsvp.checkedIn ? "#10b981" : "#f59e0b",
+                            textAlign: "center",
+                            width: "80px",
+                          }}
+                        >
+                          {rsvp.checkedIn ? "✅ IN" : "⏳ OUT"}
+                        </div>
                       </div>
 
-                      {/* Right side - Copy code button */}
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(rsvp.checkInCode);
-                          setMessage({ type: "success", text: "Code copied!" });
-                          setTimeout(
-                            () => setMessage({ type: "", text: "" }),
-                            2000
-                          );
-                        }}
+                      {/* RIGHT SIDE: Action Buttons */}
+                      <div
                         style={{
-                          padding: "8px 12px",
-                          background: "#374151",
-                          color: "#f3f4f6",
-                          border: "1px solid #4b5563",
-                          borderRadius: "6px",
-                          fontSize: "0.75rem",
-                          cursor: "pointer",
-                          fontWeight: "500",
-                          fontFamily: "monospace",
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                          justifyContent: "center",
                         }}
                       >
-                        📋 Copy Code
-                      </button>
+                        {/* WhatsApp Send Button */}
+                        <button
+                          onClick={() => {
+                            fetch(qrCodeUrls[rsvp._id])
+                              .then((res) => res.blob())
+                              .then((blob) => {
+                                const file = new File(
+                                  [blob],
+                                  `QR-${rsvp.name}.png`,
+                                  { type: "image/png" }
+                                );
+
+                                if (
+                                  navigator.share &&
+                                  navigator.canShare &&
+                                  navigator.canShare({ files: [file] })
+                                ) {
+                                  navigator
+                                    .share({
+                                      files: [file],
+                                      title: `QR Code - ${rsvp.name}`,
+                                      text: `Check-in QR code for ${rsvp.name}\nAHHC Family Get-Together 2026`,
+                                    })
+                                    .catch((err) =>
+                                      console.log("Share cancelled")
+                                    );
+                                } else {
+                                  const message = encodeURIComponent(
+                                    `✅ QR Code: ${rsvp.name}\nCode: ${
+                                      rsvp.checkInCode
+                                    }\nGuests: ${
+                                      rsvp.under5 +
+                                      rsvp.age5to12 +
+                                      rsvp.age12plus
+                                    }\nAHHC Get-Together 2026`
+                                  );
+                                  const isMobile =
+                                    /iPhone|iPad|iPod|Android/i.test(
+                                      navigator.userAgent
+                                    );
+                                  window.open(
+                                    isMobile
+                                      ? `whatsapp://send?text=${message}`
+                                      : `https://wa.me/?text=${message}`,
+                                    "_blank"
+                                  );
+                                }
+                              });
+                          }}
+                          style={{
+                            padding: "10px 16px",
+                            background: "#10b981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontSize: "0.875rem",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                            boxShadow: "0 2px 4px rgba(16, 185, 129, 0.3)",
+                          }}
+                        >
+                          💬 WhatsApp
+                        </button>
+
+                        {/* Copy Code Button */}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(rsvp.checkInCode);
+                            setMessage({
+                              type: "success",
+                              text: "Code copied!",
+                            });
+                            setTimeout(
+                              () => setMessage({ type: "", text: "" }),
+                              2000
+                            );
+                          }}
+                          style={{
+                            padding: "10px 16px",
+                            background: "#374151",
+                            color: "#f3f4f6",
+                            border: "1px solid #4b5563",
+                            borderRadius: "8px",
+                            fontSize: "0.875rem",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          📋 Copy Code
+                        </button>
+
+                        {/* Check-in Time (if checked in) */}
+                        {rsvp.checkedIn && rsvp.checkInTime && (
+                          <div
+                            style={{
+                              fontSize: "0.7rem",
+                              color: "#6b7280",
+                              textAlign: "center",
+                              marginTop: "4px",
+                            }}
+                          >
+                            {new Date(rsvp.checkInTime).toLocaleString(
+                              "en-GB",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -3099,6 +3304,10 @@ export default function AdminDashboard() {
         }
 
         @media (max-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+
           .desktop-table {
             display: none !important;
           }
