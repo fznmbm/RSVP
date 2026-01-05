@@ -43,43 +43,52 @@ export default function CheckInScanner() {
 
   useEffect(() => {
     let html5QrCodeInstance = null;
+    let isActive = true; // ADD THIS LINE
 
     if (scannerActive && typeof window !== "undefined") {
-      import("html5-qrcode").then(({ Html5Qrcode }) => {
-        html5QrCodeInstance = new Html5Qrcode("qr-reader");
+      import("html5-qrcode")
+        .then(({ Html5Qrcode }) => {
+          if (!isActive) return; // ADD THIS LINE
 
-        html5QrCodeInstance
-          .start(
+          html5QrCodeInstance = new Html5Qrcode("qr-reader");
+
+          return html5QrCodeInstance.start(
+            // ADD 'return' HERE
             { facingMode: "environment" },
             {
               fps: 10,
               qrbox: { width: 250, height: 250 },
             },
             (decodedText) => {
-              if (decodedText && !loading) {
+              if (decodedText && !loading && isActive) {
+                // ADD '&& isActive'
                 // STOP CAMERA IMMEDIATELY
-                html5QrCodeInstance.stop().then(() => {
-                  setScannerActive(false);
-                  processCheckIn(decodedText);
-                });
+                html5QrCodeInstance
+                  .stop()
+                  .then(() => {
+                    setScannerActive(false);
+                    processCheckIn(decodedText);
+                  })
+                  .catch((err) => console.error("Stop error:", err)); // ADD .catch()
               }
             },
-            (error) => {
-              // Ignore continuous scan errors
-            }
-          )
-          .catch((err) => {
-            console.error("Unable to start scanning", err);
-          });
-      });
+            () => {} // CHANGE FROM (error) => {} to () => {}
+          );
+        })
+        .catch((err) => {
+          console.error("Scanner initialization error:", err);
+        });
     }
 
     return () => {
+      isActive = false; // ADD THIS LINE FIRST
       if (html5QrCodeInstance) {
-        html5QrCodeInstance.stop().catch((err) => console.error(err));
+        html5QrCodeInstance
+          .stop()
+          .catch((err) => console.error("Cleanup stop error:", err));
       }
     };
-  }, [scannerActive, loading]);
+  }, [scannerActive]); // Keep as is - 'loading' should NOT be here
 
   // Play sound when modal shows - iOS compatible
   useEffect(() => {
