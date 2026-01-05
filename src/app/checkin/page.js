@@ -43,37 +43,52 @@ export default function CheckInScanner() {
 
   useEffect(() => {
     let html5QrCodeInstance = null;
-    let isActive = true; // ADD THIS LINE
+    let isActive = true;
+    let isScanning = false; // ADD THIS - track if actually scanning
 
     if (scannerActive && typeof window !== "undefined") {
       import("html5-qrcode")
         .then(({ Html5Qrcode }) => {
-          if (!isActive) return; // ADD THIS LINE
+          if (!isActive) return;
 
           html5QrCodeInstance = new Html5Qrcode("qr-reader");
 
-          return html5QrCodeInstance.start(
-            // ADD 'return' HERE
-            { facingMode: "environment" },
-            {
-              fps: 10,
-              qrbox: { width: 250, height: 250 },
-            },
-            (decodedText) => {
-              if (decodedText && !loading && isActive) {
-                // ADD '&& isActive'
-                // STOP CAMERA IMMEDIATELY
-                html5QrCodeInstance
-                  .stop()
-                  .then(() => {
-                    setScannerActive(false);
-                    processCheckIn(decodedText);
-                  })
-                  .catch((err) => console.error("Stop error:", err)); // ADD .catch()
+          html5QrCodeInstance
+            .start(
+              { facingMode: "environment" },
+              {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+              },
+              (decodedText) => {
+                if (decodedText && !loading && isActive && isScanning) {
+                  isScanning = false; // Mark as stopped
+                  // STOP CAMERA IMMEDIATELY
+                  html5QrCodeInstance
+                    .stop()
+                    .then(() => {
+                      setScannerActive(false);
+                      processCheckIn(decodedText);
+                    })
+                    .catch((err) => {
+                      console.error("Stop error:", err);
+                      // Even if stop fails, process check-in
+                      setScannerActive(false);
+                      processCheckIn(decodedText);
+                    });
+                }
+              },
+              () => {} // Empty error handler
+            )
+            .then(() => {
+              if (isActive) {
+                isScanning = true; // Mark as successfully started
               }
-            },
-            () => {} // CHANGE FROM (error) => {} to () => {}
-          );
+            })
+            .catch((err) => {
+              console.error("Unable to start scanning", err);
+              isScanning = false;
+            });
         })
         .catch((err) => {
           console.error("Scanner initialization error:", err);
@@ -81,14 +96,19 @@ export default function CheckInScanner() {
     }
 
     return () => {
-      isActive = false; // ADD THIS LINE FIRST
-      if (html5QrCodeInstance) {
-        html5QrCodeInstance
-          .stop()
-          .catch((err) => console.error("Cleanup stop error:", err));
+      isActive = false;
+      if (html5QrCodeInstance && isScanning) {
+        isScanning = false;
+        html5QrCodeInstance.stop().catch((err) => {
+          // Silently catch stop errors during cleanup
+          console.log(
+            "Cleanup stop (expected if already stopped):",
+            err.message
+          );
+        });
       }
     };
-  }, [scannerActive]); // Keep as is - 'loading' should NOT be here
+  }, [scannerActive]); // Only scannerActive dependency
 
   // Play sound when modal shows - iOS compatible
   useEffect(() => {
