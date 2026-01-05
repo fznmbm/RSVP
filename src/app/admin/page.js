@@ -25,6 +25,7 @@ export default function AdminDashboard() {
   const [generatingCodes, setGeneratingCodes] = useState(false);
   const [checkInStats, setCheckInStats] = useState({ checkedIn: 0, total: 0 });
   const [qrCodeUrls, setQrCodeUrls] = useState({});
+  const [autoRefresh, setAutoRefresh] = useState(true); // ADD THIS
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,6 +46,17 @@ export default function AdminDashboard() {
     fetchSettings(); // ADD THIS LINE
     fetchQrStats(); // ADD THIS LINE
   }, []);
+
+  // Auto-refresh check-in stats every 10 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      fetchRsvps(search); // Refresh data
+    }, 10000); // Every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, search]);
 
   const fetchSettings = async () => {
     try {
@@ -1038,6 +1050,24 @@ export default function AdminDashboard() {
               }}
             >
               📱 Open Scanner
+            </button>
+
+            {/* ADD THIS: */}
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              style={{
+                padding: "12px 20px",
+                background: autoRefresh ? "#667eea" : "#374151",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {autoRefresh ? "🔄 Auto-refresh ON" : "⏸️ Auto-refresh OFF"}
             </button>
           </div>
         </div>

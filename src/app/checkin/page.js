@@ -12,7 +12,18 @@ export default function CheckInScanner() {
   const [stats, setStats] = useState(null);
   const [scannerActive, setScannerActive] = useState(false);
   const [lastScannedCode, setLastScannedCode] = useState("");
+  const [recentCheckIns, setRecentCheckIns] = useState([]);
+
   const router = useRouter();
+
+  // ADD THIS:
+  const playSuccessSound = () => {
+    // Create audio element with success sound
+    const audio = new Audio(
+      "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuAzvLZiTYIGWe77OelTRALUKfj8LZjHAU7k9r0yXswBSl+zPLaizsKFFuz6OyrWBUIR6Hh8r5vIgYrfs/z3Ig4CBdmuu7npE8PC1Co4/C3YxwGOpPa9Ml7MAUqfszx2os3ChRas+jsqVkVCEag4PO9cSMGKn7P8d2JPAcXZrru56ROEQ1Qp+PwtmIcBzmT2vPKfC4FKn/M8dmLOAoTWrPo7KlYFQdGn9/zvW4iBit+zvHdizwIF2W67OekTxANUKjh8LdjGwU6ktrzyn0vBSl/zPHYizgKFFux6eypVxUIRp7f8r1vJAUrfs/y3Yo7Bxdluu3no08QDVCn4u+2YhoFOpLZ88p9LwUpf8zx2Ys4ChRbsejsqFcVB0ae3vK9bSMGLH3P8d2KOwgWZLvs56NQDw5Qp+LvtmEaBTqR2fLKfS8FKH/M8deLOQoUWrLo7KlYFQhGnt7yvW4jBSx+z/HdijsHF2S77OajUQ8NUKfi77VhGgU5kNnyyn0vBSh/y/HXizkKE1qy6OuoWRUIRp7d8r5uIwUsfs/y3Is7CBdku+znpFAODU+o4e+1YRkFOZHa88p9MAUpgMzx14s5ChNasufsqVgVCEad3vK+biMFLH7P8tyKOwcXZbvt56RQDg1Pp+HvtGAZBTmQ2fPKfS8FKH/M8deLOQoTWrLo7KlYFQhGnd7yvW4jBSx9z/LcijsHF2W77OekUQ4NUKfh77RgGQU5kNn0yn0vBSh/zPHXizkKFFqy6OypWRUIRp3e8r1uIwUrfs/y3Io7Bhdlu+3no1EQDVCn4O+0YBkFOZDZ88p+MAUof8zx14s5ChRasunrqVgVB0ad3vK9biMFK37P8tyKOwcXZbvt56RREANOU6fh77RgGQU5j9n0yn0vBSh/zPHXizkKE1qy6euoWhYIRp3e8r1uIwUrfs/y3Io7Bxdmu+znpFEPDVCn4e+0YhkFOZDZ88p9LwQof83y14s5ChNasunsqVkVB0ad3vK9biMFK37P8tyKOwgWZbrt56RRDw1Qp+HvtGIZBTmP2fPKfi8FKH/M8deLOQoTWrLp66lZFQdGnd7yvm4kBSp+z/LcijsHFmW77OekUQ8OT6fg77RhGAU5kNnzyn4wBCh/zPHXizkKE1qy6eyoWBYHRp3e8r1uIwQrfs/x3Is7CBVluu3no1EODk+n4O+0YhkFOZDZ9Mp+LwUof8zx2Ys4CxNasunsqVgWB0ae3fK9byMEK37P8dyLOwgVZbrt56NRDw5Qp+DvtGEZBTiQ2fTKfi8FKH/M8dmLOQoSWrLo7KlYFgdGnt3yvm4jBCt+z/HcizwHFWS77OejUA8NT6fg8LRhGgU4kNr0yn4wBCh/zPHZizgLE1qx6eypWBUHRp3e8r5vIwQrfs/x3Is7CBZkuu3npFEPDU+n4e+0YRkFOJDa9Mp+LwUof87y2Ys5CxNasujsqFkVB0ae3fK+byMEK37P8dyLOwgWZLrt56NRDg5Pp+HvtWAYBTiQ2vPKfzAEJ3/M8tmLOQsSWrLo7KlYFQdGnt3yvm8jBCt+z/HcizwHFmW67eejUA4OT6fh77RhGgU4kNr0yn4vBSh/zvLYizkLE1qy6OyoWRUIR57e8r5vJAUrfs/y3Is8BxVluu3no1EPDk+n4e+1YRkGN5HZ9Mp/MAQof87y2Ys5CxNasunsqVgWB0ad3vK+byQEK37Q8dyMOwgVZbvt56RRDg5Qp+DvtWEaBjeQ2vTKfi8FKH/O8tmLOQsTWrPp7KlYFQdGnd7yvm8kBCp+z/HcjDsIFWW67eejUQ8OT6fh77VhGQY3kNr0yn4vBSh/zvLZizkMElqy6OyoWRUIR57d8r5vJAUrftDx3Iw7CBZlu+znpVIPDk+n4O+1YBkGOI/a9Mp+MAQof87y2Ys5DBJasunsqFkVCEee3fK+cCQFK37P8t2MOwgWZbru56RSDw5Pp+Dws2EZBjiP2vTKfi8FKH/O8tmLOgwSWrLo7KlZFQhHnt3yvm8kBSp+z/LdjDwIF2W67uelUg8NT6fg8LNhGQU4j9r0yn4vBSh/zvLZizoMElqy6eyoWhYIR57d8r5wJAQrftDx3Y07CBZluu7no1IOD06n4PCzYRoFOI/a9cp+MAUof87y2os6DBJasunrqVoWCEee3fK+cCQEK37P8t2MOwkWZbru56RSDw5Pp+DwtGIZBjiP2vXKfzAFKH/O8tqLOgwSWrLp7KlaFghHnt3yvnAkBCt+0PHdjTsJFmW67OekUhAOTqfg8LNiGQY4jtv1yn8wBCh/zvLaizsMElqy6eyoWhYIR57d8r5wJQQrfs/y3Y08CBZluu7no1IPDk+n4PCzYhkGOI7b9cp/MAQof87y2os7DBFasunrqVoWCEee3fK+cCUEKn7Q8t2NOwkWZbrt56NSEAxPp+DwsmAaBjiO2/TLfi8FKH/O8tqLOwwRWrPp7KlaFgdHnt3yvnElBCp+0PLdjTwJFmW67eejUhAMT6fg8LJhGAY4jtv0y34vBSh/zvLajDwLEVqz6eyoWhcHR53e8r5xJQQqftDy3Y08CBZluu3no1IQDE+n4PCyYRgGOI7b9Mt+LwUof87y2ow8CxFas+nsqFsWB0ed3fO+cSQFKn7P8t2NPAkWZbvu56RRDw5Pp+DwsmEYBjeO2/TLfjAEJ3/O8tqMPAsRWrPo7KlbFwdHnd3zvnElBCp+z/LdjjwJFmW77OekUQ8OT6fg8LJiGAU3jtv0y34vBCd/zvLajDwLEVqz6OyoWxYIR53d8r5xJQQqfs/y3Y48CRVluu3npFIPD06n4PCyYRgFN47b9ct+LwQnf87y2os8CxBbs+nsqVsXB0ed3fO+cSUEKn7P8t2OPQkVZbru56RSDw5Op+DwsmEYBTeO2/XLfi8EJ3/O8tqMPAsQW7Pp66pcFwdHnd3zvnAlBCp+z/LejjwJFWW67uekUQ8OT6fh8LJhGAU3jtv1y34vBSd/z/LajDwLEFuz6eupWxYHR5ze8r5xJQQqfs/y3o48CRVluu7npFIPDk6n4PCyYhgFN47b9ct/LwQnf87y2ow8CxBbs+nrqlsWB0ec3vK+cSUEKn7P8t6OPAkVZrru56NSDw5Op+HwsmEYBTeO3PTLfi8EJ3/O8tqMPQsQW7Pp7KpcFwZHnN7yv3ElBCp+z/LejjwIFWW77OejUg8PTqfh8LJhGAU3jtz0y38vBCZ/zvLajD0LEFuz6eyqXBcHR5ze8r9xJQQqftDy3o49CRVlu+3no1IPDk+n4fCyYRkFN4/b9ct/LwQmf8/y2ow9CxBbs+nsqlwXB0ec3vK/ciYEKX7Q8t6OPQkVZbvt56NSEAxOp+HwsmAZBjeO2/XLfy8EJn/P8tqMPQsQW7Pp7KpcFwdHnN7yv3ImBCl+z/LejjwJFWW77eejURAMT6fh8LJgGAU3j9v1y38wBCZ/z/LajD0LD1u06euqXBcHRpze8r9yJgQpfs/y3o48CBVlu+3no1IPDk+n4fCyYBgFN4/c9ct/MAQmf8/y2ow9Cw9btOnrqVsXB0ec3vK/ciYEKX7P8t6OPAgVZbvt56NSDw1Pp+HwsmAYBTeP3PXLfy8EJn/P8tqMPQsPW7Tp66pbFwdHnN7yv3ImBCl+z/LejjwIFWW77eejUg8OT6fh8LJgGAU3j9z1y38vBCZ/z/Lbiz4KD1u06euqWxcHR5ze8r9yJgQpfs/y3o48CBVlvO3no1IPDk+n4e+yYBgFN4/c9ct/LwQmf9Dy24s+Cg9btOnrqlsXB0ec3fK/ciYEKX7P8t6OPAgVZbzt56NSDw5Pp+HvsmAYBTeP3PXLfzAEJn/Q8tuLPgoPW7Tp66pbFwdHnN3yv3InBSl+z/LejjwIFWW87eejUg8OT6fh8LJhGAU3j9z1y38vBCV/0PLbjD4KD1u06euqXBcGR5zd8sFyJgUpftDy3o48CBVlu+3no1IPDk+n4fCyYBgFN4/c9ct/LwQlf9Dy24s+Cw9btOrrqloWB0ec3fLBciYEKH7Q8t6OPAgVZbvt56NRDw5Pp+HwsmEZBTaP3PXLfzAEJX/Q8tuLPgsPW7Tq66pbFwZHnN3ywXImBSh+0PLeiz4IFWW77eejUg4OT6fh8LJhGQU2j9z1zH8vBCV/0PLbjD4LD1u06uurWxYGRpzd8sFyJwUpftDy3ow+CBVlvO3npFIPDU+n4PCyYRgFNo/c9cugFgYGR5ze8r9xJgUpfs/y3o48CBVlvO3no1MQDk+n4O+yYBgFN4/c9ct/LwQmf8/y24s+Cw9btOnrqlwXB0ec3vK/ciYEKX7P8t6OPAgVZbzt56NSDw5Op+DwsmAYBTeP3PXLfy8EJn/P8tuLPgsPW7Tp66pcFwdHnN7yv3ImBCl+z/LejjwIFWW87eejUg8OT6fh8LJgGAU3j9z1y38vBCZ/z/Lbiz4LD1u06euqXBcHR5ze8r9yJgQpfs/y3o48CBVlvO3no1IPDk+n4fCyYBgFN4/c9ct/LwQmf8/y24s+Cw9btOnrqlwXB0ec3vK/ciYEKX7P8t6OPAgVZbzt56NSDw5Pp+HwsmAYBTeP3PXLfy8EJn/P8tuLPgsPW7Tp66pcFwdHnN7yv3ImBCl+z/LejjwIFWW87eejUg8OT6fh8LJgGAU3j9z1y38vBCZ/z/Lbiz4LD1u06euqXBcHR5ze8r9yJgQpfs/y3o48CBVlvO3no1IPDk+n4fCyYBgFN4/c9ct/LwQmf8/y24s+Cw9btOnrqlwXB0ec3vK/ciYEKX7P8t6OPAgVZbzt56NSDw5Pp+HwsmAYBTeP3PXLfy8EJn/P8tuLPgsPW7Tp66pcFwdHnN7yv3ImBCl+z/LejjwIFWW87eejUg8OT6fh8LJgGAU3j9z1y38vBCZ/z/Lbiz4LD1u06euqXBcHR5ze8r9yJgQpfs/y3o48CBVlvO3no1IPDk+n4fCyYBgFN4/c9ct/LwQmf8/y24s+Cw9btOnrqlwXB0ec3vK/ciYEKX7P8t6OPAgVZbzt56NSEAxPp+DwsmEYBTaP3PXLfzAEJX/Q8tuMPgoPW7Tp7KpcFwdHnN3yv3InBSh+0PLejjwJFWW87eekUg8NT6fg8LJhGAU2j9z1y38vBCV/0PLbjD4KD1u06eyqXBcHR5zd8r9xJwUpfs/y3o4+CBVlvO3no1IPDVGN="
+    );
+    audio.play().catch((e) => console.log("Audio play failed:", e));
+  };
 
   useEffect(() => {
     // Load volunteer name from storage
@@ -67,6 +78,14 @@ export default function CheckInScanner() {
       const data = await response.json();
 
       if (response.ok) {
+        // ADD THIS ENTIRE BLOCK:
+        const checkedInList = data.data
+          .filter((r) => r.checkedIn)
+          .sort((a, b) => new Date(b.checkInTime) - new Date(a.checkInTime))
+          .slice(0, 10);
+
+        setRecentCheckIns(checkedInList);
+
         const checkedInCount = data.data.filter((r) => r.checkedIn).length;
         const paidCount = data.data.filter(
           (r) => r.paymentStatus === "paid"
@@ -108,6 +127,7 @@ export default function CheckInScanner() {
       const data = await response.json();
 
       if (data.success) {
+        playSuccessSound(); // ADD THIS LINE
         setResult({
           type: "success",
           message: data.message,
@@ -531,6 +551,150 @@ export default function CheckInScanner() {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Recent Check-Ins List */}
+        {recentCheckIns.length > 0 && (
+          <div
+            style={{
+              background: "#1f2937",
+              borderRadius: "12px",
+              padding: "20px",
+              marginBottom: "20px",
+              border: "1px solid #374151",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "16px",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "1.125rem",
+                  fontWeight: "600",
+                  color: "#f9fafb",
+                  margin: 0,
+                }}
+              >
+                ✅ Recently Checked In
+              </h3>
+              <button
+                onClick={() => router.push("/admin")}
+                style={{
+                  padding: "6px 12px",
+                  background: "#374151",
+                  color: "#9ca3af",
+                  border: "1px solid #4b5563",
+                  borderRadius: "6px",
+                  fontSize: "0.75rem",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+              >
+                View All →
+              </button>
+            </div>
+
+            <div
+              style={{
+                maxHeight: "300px",
+                overflowY: "auto",
+              }}
+            >
+              {recentCheckIns.map((person, index) => {
+                const timeAgo = Math.floor(
+                  (Date.now() - new Date(person.checkInTime)) / 1000
+                );
+                const timeText =
+                  timeAgo < 60
+                    ? "Just now"
+                    : timeAgo < 3600
+                    ? `${Math.floor(timeAgo / 60)}m ago`
+                    : new Date(person.checkInTime).toLocaleTimeString("en-GB", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+
+                return (
+                  <div
+                    key={person._id}
+                    style={{
+                      padding: "12px",
+                      background: index === 0 ? "#064e3b" : "#111827",
+                      borderRadius: "8px",
+                      marginBottom: "8px",
+                      border: `1px solid ${
+                        index === 0 ? "#10b981" : "#374151"
+                      }`,
+                      animation: index === 0 ? "pulse 2s ease-in-out" : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "12px",
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            color: "#f9fafb",
+                            fontWeight: "600",
+                            fontSize: "0.9rem",
+                            marginBottom: "4px",
+                          }}
+                        >
+                          {person.name}
+                        </div>
+                        <div
+                          style={{
+                            color: "#9ca3af",
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          {person.under5 + person.age5to12 + person.age12plus}{" "}
+                          people • {timeText}
+                        </div>
+                        {person.checkInBy && (
+                          <div
+                            style={{
+                              color: "#6b7280",
+                              fontSize: "0.7rem",
+                              marginTop: "2px",
+                            }}
+                          >
+                            by {person.checkInBy}
+                          </div>
+                        )}
+                      </div>
+
+                      {index === 0 && (
+                        <div
+                          style={{
+                            background: "#10b981",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "0.7rem",
+                            fontWeight: "700",
+                            color: "white",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          NEW
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
