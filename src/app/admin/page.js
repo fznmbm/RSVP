@@ -26,6 +26,7 @@ export default function AdminDashboard() {
   const [checkInStats, setCheckInStats] = useState({ checkedIn: 0, total: 0 });
   const [qrCodeUrls, setQrCodeUrls] = useState({});
   const [autoRefresh, setAutoRefresh] = useState(true); // ADD THIS
+  const [checkInMode, setCheckInMode] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,7 +54,7 @@ export default function AdminDashboard() {
 
     const interval = setInterval(() => {
       fetchRsvps(search); // Refresh data
-    }, 10000); // Every 10 seconds
+    }, 5000); // Every 5 seconds
 
     return () => clearInterval(interval);
   }, [autoRefresh, search]);
@@ -556,9 +557,19 @@ export default function AdminDashboard() {
 
   // Filter and sort
   const filteredRsvps = rsvps
-    .filter(
-      (rsvp) => statusFilter === "all" || rsvp.paymentStatus === statusFilter
-    )
+    .filter((rsvp) => {
+      // Check-in mode: only show not checked in
+      if (checkInMode) {
+        return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
+      }
+
+      // Normal filters
+      if (statusFilter === "all") return true;
+      if (statusFilter === "not-checked") {
+        return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
+      }
+      return rsvp.paymentStatus === statusFilter;
+    })
     .sort((a, b) => {
       let aVal, bVal;
       switch (sortBy) {
@@ -596,6 +607,23 @@ export default function AdminDashboard() {
   };
 
   const getStatusBadge = (status, rsvpId) => {
+    const statusConfig = {
+      paid: {
+        bg: "#064e3b",
+        color: "#10b981",
+        border: "#10b981",
+        icon: "🟢",
+      },
+      pending: {
+        bg: "#78350f",
+        color: "#f59e0b",
+        border: "#f59e0b",
+        icon: "🟡",
+      },
+    };
+
+    const config = statusConfig[status] || statusConfig.pending;
+
     return (
       <select
         value={status}
@@ -604,22 +632,22 @@ export default function AdminDashboard() {
           padding: "8px 12px",
           borderRadius: "6px",
           fontSize: "0.875rem",
-          fontWeight: "600",
-          backgroundColor: "#374151",
-          color: status === "pending" ? "#f59e0b" : "#10b981",
-          border: "1px solid #4b5563",
+          fontWeight: "700",
+          backgroundColor: config.bg,
+          color: config.color,
+          border: `2px solid ${config.border}`,
           cursor: "pointer",
           outline: "none",
-          minWidth: "120px",
+          minWidth: "140px",
           appearance: "none",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "right 8px center",
-          paddingRight: "28px",
+          paddingRight: "32px",
         }}
       >
-        <option value="pending">⏳ Pending</option>
-        <option value="paid">✅ Paid</option>
+        <option value="pending">🟡 Pending</option>
+        <option value="paid">🟢 Paid</option>
       </select>
     );
   };
@@ -666,21 +694,76 @@ export default function AdminDashboard() {
               gap: "12px",
             }}
           >
-            <div>
-              <h1
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "16px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                <h1
+                  style={{
+                    fontSize: "clamp(1.25rem, 4vw, 1.875rem)",
+                    fontWeight: "700",
+                    color: "#f9fafb",
+                    marginBottom: "4px",
+                  }}
+                >
+                  📊 RSVP Management
+                </h1>
+                <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
+                  AHHC Family Get-Together 2026
+                </p>
+              </div>
+
+              {/* MODE TOGGLE */}
+              <div
                 style={{
-                  fontSize: "clamp(1.25rem, 4vw, 1.875rem)",
-                  fontWeight: "700",
-                  color: "#f9fafb",
-                  marginBottom: "4px",
+                  display: "flex",
+                  gap: "4px",
+                  background: "#111827",
+                  padding: "4px",
+                  borderRadius: "12px",
+                  border: "1px solid #374151",
                 }}
               >
-                📊 RSVP Management
-              </h1>
-              <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
-                AHHC Family Get-Together 2026
-              </p>
+                <button
+                  onClick={() => setCheckInMode(false)}
+                  style={{
+                    padding: "10px 20px",
+                    background: !checkInMode ? "#667eea" : "transparent",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  📊 Admin Mode
+                </button>
+                <button
+                  onClick={() => setCheckInMode(true)}
+                  style={{
+                    padding: "10px 20px",
+                    background: checkInMode ? "#10b981" : "transparent",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  🎫 Check-In Mode
+                </button>
+              </div>
             </div>
+
             <div style={{ display: "flex", gap: "8px", width: "100%" }}>
               {/* <button
                 onClick={exportToCSV}
@@ -787,7 +870,7 @@ export default function AdminDashboard() {
           </div>
         )}
         {/* Stats Cards - Responsive Grid */}
-        {stats && (
+        {stats && !checkInMode && (
           <div
             style={{
               display: "grid",
@@ -886,7 +969,7 @@ export default function AdminDashboard() {
         )}
 
         {/* QR Code Generation Warning */}
-        {qrStats.needingCodes > 0 && (
+        {qrStats.needingCodes > 0 && !checkInMode && (
           <div
             style={{
               background: "#7f1d1d",
@@ -945,82 +1028,121 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Check-In Stats */}
+        {/* Check-In Stats - Enhanced for Check-In Mode */}
         <div
           style={{
-            background: "#1f2937",
-            borderRadius: "12px",
-            padding: "20px",
+            background: checkInMode
+              ? "linear-gradient(135deg, #1f2937 0%, #111827 100%)"
+              : "#1f2937",
+            borderRadius: checkInMode ? "20px" : "12px",
+            padding: checkInMode ? "40px" : "20px",
             marginBottom: "20px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-            border: "1px solid #374151",
+            border: checkInMode ? "2px solid #10b981" : "1px solid #374151",
+            textAlign: checkInMode ? "center" : "left",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "16px",
-            }}
-          >
-            <div style={{ flex: 1 }}>
-              <h3
+          {checkInMode ? (
+            // CHECK-IN MODE LAYOUT
+            <>
+              <div
                 style={{
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#f9fafb",
-                  marginBottom: "8px",
+                  fontSize: "1rem",
+                  color: "#9ca3af",
+                  textTransform: "uppercase",
+                  letterSpacing: "2px",
+                  marginBottom: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
                 }}
               >
-                🎫 Check-In Status
-              </h3>
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: "#10b981",
+                    animation: "pulse 2s infinite",
+                  }}
+                />
+                🟢 LIVE CHECK-IN MODE
+              </div>
+
               <div
                 style={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  marginBottom: "12px",
+                  justifyContent: "center",
+                  alignItems: "baseline",
+                  gap: "24px",
+                  marginBottom: "32px",
+                  flexWrap: "wrap",
                 }}
               >
                 <div>
                   <div
                     style={{
+                      fontSize: "4rem",
+                      fontWeight: "700",
+                      color: "#10b981",
+                      lineHeight: "1",
+                    }}
+                  >
+                    {checkInStats.checkedIn}
+                  </div>
+                  <div
+                    style={{
                       color: "#9ca3af",
-                      fontSize: "0.75rem",
-                      marginBottom: "4px",
+                      fontSize: "0.875rem",
+                      marginTop: "8px",
                     }}
                   >
                     Checked In
                   </div>
-                  <div
-                    style={{
-                      fontSize: "2rem",
-                      fontWeight: "700",
-                      color: "#10b981",
-                    }}
-                  >
-                    {checkInStats.checkedIn} / {checkInStats.total}
-                  </div>
                 </div>
+
                 <div
                   style={{
-                    fontSize: "2.5rem",
-                    fontWeight: "700",
-                    color: "#667eea",
+                    fontSize: "3rem",
+                    color: "#4b5563",
                   }}
                 >
-                  {checkInStats.percentage}%
+                  /
+                </div>
+
+                <div>
+                  <div
+                    style={{
+                      fontSize: "4rem",
+                      fontWeight: "700",
+                      color: "#6b7280",
+                      lineHeight: "1",
+                    }}
+                  >
+                    {checkInStats.total}
+                  </div>
+                  <div
+                    style={{
+                      color: "#9ca3af",
+                      fontSize: "0.875rem",
+                      marginTop: "8px",
+                    }}
+                  >
+                    Total
+                  </div>
                 </div>
               </div>
 
+              {/* Progress Bar */}
               <div
                 style={{
                   width: "100%",
-                  height: "8px",
+                  maxWidth: "600px",
+                  margin: "0 auto 24px",
+                  height: "24px",
                   background: "#374151",
-                  borderRadius: "4px",
+                  borderRadius: "12px",
                   overflow: "hidden",
                 }}
               >
@@ -1028,52 +1150,216 @@ export default function AdminDashboard() {
                   style={{
                     width: `${checkInStats.percentage}%`,
                     height: "100%",
-                    background: "linear-gradient(90deg, #10b981, #667eea)",
-                    transition: "width 0.5s",
+                    background: "linear-gradient(90deg, #10b981, #059669)",
+                    transition: "width 0.5s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    paddingRight: "16px",
+                  }}
+                >
+                  {checkInStats.percentage > 15 && (
+                    <span
+                      style={{
+                        color: "white",
+                        fontWeight: "700",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      {checkInStats.percentage}%
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* BIG Scanner Button */}
+              <button
+                onClick={() => router.push("/checkin")}
+                style={{
+                  width: "100%",
+                  maxWidth: "500px",
+                  padding: "32px",
+                  background:
+                    "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                  border: "none",
+                  borderRadius: "16px",
+                  color: "white",
+                  fontSize: "1.75rem",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  marginBottom: "16px",
+                  boxShadow: "0 8px 24px rgba(16, 185, 129, 0.4)",
+                  animation: "pulse 2s infinite",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "16px",
+                  margin: "0 auto 16px",
+                }}
+              >
+                📷 SCAN QR CODE
+              </button>
+
+              <button
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                style={{
+                  padding: "12px 24px",
+                  background: autoRefresh ? "#667eea" : "#374151",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: autoRefresh ? "#10b981" : "#6b7280",
+                    animation: autoRefresh ? "pulse 2s infinite" : "none",
                   }}
                 />
+                {autoRefresh ? "🔴 LIVE" : "⏸️ Paused"}
+              </button>
+            </>
+          ) : (
+            // ADMIN MODE LAYOUT (existing)
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "16px",
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <h3
+                  style={{
+                    fontSize: "1.125rem",
+                    fontWeight: "600",
+                    color: "#f9fafb",
+                    marginBottom: "8px",
+                  }}
+                >
+                  🎫 Check-In Status
+                </h3>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "16px",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        color: "#9ca3af",
+                        fontSize: "0.75rem",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      Checked In
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "2rem",
+                        fontWeight: "700",
+                        color: "#10b981",
+                      }}
+                    >
+                      {checkInStats.checkedIn} / {checkInStats.total}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "2.5rem",
+                      fontWeight: "700",
+                      color: "#667eea",
+                    }}
+                  >
+                    {checkInStats.percentage}%
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    width: "100%",
+                    height: "8px",
+                    background: "#374151",
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${checkInStats.percentage}%`,
+                      height: "100%",
+                      background: "linear-gradient(90deg, #10b981, #667eea)",
+                      transition: "width 0.5s",
+                    }}
+                  />
+                </div>
               </div>
+
+              <button
+                onClick={() => router.push("/checkin")}
+                style={{
+                  padding: "12px 20px",
+                  background: "#10b981",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                📱 Open Scanner
+              </button>
+
+              <button
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                style={{
+                  padding: "12px 20px",
+                  background: autoRefresh ? "#667eea" : "#374151",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: autoRefresh ? "#10b981" : "#6b7280",
+                    animation: autoRefresh ? "pulse 2s infinite" : "none",
+                  }}
+                />
+                {autoRefresh ? "🔴 LIVE" : "⏸️ Paused"}
+              </button>
             </div>
-
-            <button
-              onClick={() => router.push("/checkin")}
-              style={{
-                padding: "12px 20px",
-                background: "#10b981",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontSize: "1rem",
-                whiteSpace: "nowrap",
-              }}
-            >
-              📱 Open Scanner
-            </button>
-
-            {/* ADD THIS: */}
-            <button
-              onClick={() => setAutoRefresh(!autoRefresh)}
-              style={{
-                padding: "12px 20px",
-                background: autoRefresh ? "#667eea" : "#374151",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {autoRefresh ? "🔄 Auto-refresh ON" : "⏸️ Auto-refresh OFF"}
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Deadline Control Section */}
-        {settings && (
+        {settings && !checkInMode && (
           <div
             style={{
               background: "#1f2937",
@@ -1341,26 +1627,29 @@ export default function AdminDashboard() {
             </div>
 
             <select
-              value={statusFilter}
+              value={checkInMode ? "not-checked" : statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
+              disabled={checkInMode}
               style={{
                 padding: "10px 14px",
                 border: "1px solid #374151",
                 borderRadius: "8px",
                 fontSize: "0.875rem",
-                background: "#111827",
-                cursor: "pointer",
+                background: checkInMode ? "#374151" : "#111827",
+                cursor: checkInMode ? "not-allowed" : "pointer",
                 outline: "none",
                 color: "#f3f4f6",
                 minWidth: "120px",
+                opacity: checkInMode ? 0.7 : 1,
               }}
             >
               <option value="all">All Status</option>
               <option value="pending">⏳ Pending</option>
               <option value="paid">✅ Paid</option>
+              <option value="not-checked">⏸️ Not Checked</option>
             </select>
 
             <select
@@ -2799,6 +3088,16 @@ export default function AdminDashboard() {
       </div>
 
       <style jsx>{`
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+
         @media (max-width: 768px) {
           .desktop-table {
             display: none !important;
