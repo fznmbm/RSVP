@@ -948,7 +948,7 @@ export default function Home() {
                   backdropFilter: "blur(8px)",
                   zIndex: 9999,
                   display: "flex",
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   justifyContent: "center",
                   padding: "20px",
                   animation: "fadeIn 0.3s ease-out",
@@ -1197,63 +1197,91 @@ export default function Home() {
                       >
                         <div
                           style={{
-                            display: "grid",
-                            gridTemplateColumns: "auto 1fr",
-                            gap: "8px 16px",
                             fontSize: "0.875rem",
+                            lineHeight: "1.6",
                           }}
                         >
-                          <strong style={{ color: "#f3f4f6" }}>Bank:</strong>
-                          <span style={{ color: "#d1d5db" }}>HSBC</span>
+                          <div style={{ marginBottom: "8px" }}>
+                            <strong style={{ color: "#f3f4f6" }}>Bank: </strong>
+                            <span style={{ color: "#d1d5db" }}>HSBC</span>
+                          </div>
 
-                          <strong style={{ color: "#f3f4f6" }}>
-                            Account Name:
-                          </strong>
-                          <span style={{ color: "#d1d5db" }}>
-                            Akurana Helping Hands Crawley UK
-                          </span>
+                          <div style={{ marginBottom: "8px" }}>
+                            <strong style={{ color: "#f3f4f6" }}>
+                              Account:{" "}
+                            </strong>
+                            <span style={{ color: "#d1d5db" }}>
+                              Akurana Helping Hands Crawley UK
+                            </span>
+                          </div>
 
-                          <strong style={{ color: "#f3f4f6" }}>
-                            Account No:
-                          </strong>
-                          <span
+                          <div
                             style={{
-                              color: "#d1d5db",
-                              fontFamily: "monospace",
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
+                              gap: "8px",
+                              marginBottom: "8px",
                             }}
                           >
-                            92155494
-                          </span>
+                            <div>
+                              <strong style={{ color: "#f3f4f6" }}>
+                                Account No:{" "}
+                              </strong>
+                              <span
+                                style={{
+                                  color: "#d1d5db",
+                                  fontFamily: "monospace",
+                                  display: "block",
+                                }}
+                              >
+                                92155494
+                              </span>
+                            </div>
+                            <div>
+                              <strong style={{ color: "#f3f4f6" }}>
+                                Sort Code:{" "}
+                              </strong>
+                              <span
+                                style={{
+                                  color: "#d1d5db",
+                                  fontFamily: "monospace",
+                                  display: "block",
+                                }}
+                              >
+                                40-18-22
+                              </span>
+                            </div>
+                          </div>
 
-                          <strong style={{ color: "#f3f4f6" }}>
-                            Sort Code:
-                          </strong>
-                          <span
+                          <div style={{ marginBottom: "8px" }}>
+                            <strong style={{ color: "#f3f4f6" }}>
+                              Reference:{" "}
+                            </strong>
+                            <span style={{ color: "#d1d5db" }}>
+                              {submittedData.name}
+                            </span>
+                          </div>
+
+                          <div
                             style={{
-                              color: "#d1d5db",
-                              fontFamily: "monospace",
+                              marginTop: "12px",
+                              paddingTop: "12px",
+                              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
                             }}
                           >
-                            40-18-22
-                          </span>
-
-                          <strong style={{ color: "#f3f4f6" }}>
-                            Reference:
-                          </strong>
-                          <span style={{ color: "#d1d5db" }}>
-                            {submittedData.name}
-                          </span>
-
-                          <strong style={{ color: "#f3f4f6" }}>Amount:</strong>
-                          <span
-                            style={{
-                              color: "#10b981",
-                              fontWeight: "700",
-                              fontSize: "1.125rem",
-                            }}
-                          >
-                            £{submittedData.totalAmount}
-                          </span>
+                            <strong style={{ color: "#f3f4f6" }}>
+                              Amount:{" "}
+                            </strong>
+                            <span
+                              style={{
+                                color: "#10b981",
+                                fontWeight: "700",
+                                fontSize: "1.25rem",
+                              }}
+                            >
+                              £{submittedData.totalAmount}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
@@ -1373,30 +1401,35 @@ export default function Home() {
                   </div>
 
                   {/* Close Button */}
+                  {/* Close Button - Sticky on Mobile */}
                   <button
                     onClick={() => setShowSuccessModal(false)}
                     style={{
                       width: "100%",
                       padding: "14px",
-                      background: "transparent",
-                      color: "#9ca3af",
-                      border: "2px solid #374151",
+                      background: "#1f2937",
+                      color: "#f3f4f6",
+                      border: "2px solid #10b981",
                       borderRadius: "8px",
                       fontSize: "1rem",
                       fontWeight: "600",
                       cursor: "pointer",
                       transition: "all 0.2s",
+                      position: "sticky",
+                      bottom: "0",
+                      marginTop: "16px",
+                      boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.5)",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#4b5563";
-                      e.currentTarget.style.color = "#f3f4f6";
+                      e.currentTarget.style.background = "#10b981";
+                      e.currentTarget.style.color = "white";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#374151";
-                      e.currentTarget.style.color = "#9ca3af";
+                      e.currentTarget.style.background = "#1f2937";
+                      e.currentTarget.style.color = "#f3f4f6";
                     }}
                   >
-                    Done
+                    ✓ Done
                   </button>
                 </div>
               </div>
@@ -1507,7 +1540,7 @@ export default function Home() {
 
           @media (max-width: 480px) {
             [style*="padding: 40px"] {
-              padding: 30px 20px !important;
+              padding: 20px 16px !important;
             }
             [style*="fontSize: 2rem"] {
               font-size: 1.5rem !important;
