@@ -16,6 +16,8 @@ export default function Home() {
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedData, setSubmittedData] = useState(null);
 
   // Deadline state
   const [deadlineInfo, setDeadlineInfo] = useState(null);
@@ -70,10 +72,18 @@ export default function Home() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({
-          type: "success",
-          text: "RSVP submitted successfully! Please make your payment and send the receipt to Br Irshan (07892804448).",
+        // Store submitted data for modal
+        setSubmittedData({
+          name: formData.name,
+          phone: formData.phone,
+          totalAmount: calculateTotal(),
+          totalGuests: formData.under5 + formData.age5to12 + formData.age12plus,
         });
+
+        // Show success modal
+        setShowSuccessModal(true);
+
+        // Reset form
         setFormData({
           name: "",
           phone: "",
@@ -84,6 +94,9 @@ export default function Home() {
           paymentReference: "",
           notes: "",
         });
+
+        // Clear any previous messages
+        setMessage({ type: "", text: "" });
       } else {
         setMessage({
           type: "error",
@@ -921,6 +934,473 @@ export default function Home() {
                 {loading ? "Submitting..." : "🎫 Submit RSVP"}
               </button>
             </form>
+
+            {/* SUCCESS MODAL - Add this entire block here */}
+            {showSuccessModal && submittedData && (
+              <div
+                style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "rgba(0, 0, 0, 0.95)",
+                  backdropFilter: "blur(8px)",
+                  zIndex: 9999,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "20px",
+                  animation: "fadeIn 0.3s ease-out",
+                  overflowY: "auto",
+                }}
+                onClick={() => setShowSuccessModal(false)}
+              >
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
+                    borderRadius: "24px",
+                    padding: "40px",
+                    maxWidth: "600px",
+                    width: "100%",
+                    border: "2px solid #10b981",
+                    boxShadow: "0 20px 60px rgba(16, 185, 129, 0.4)",
+                    animation: "scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    position: "relative",
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowSuccessModal(false)}
+                    style={{
+                      position: "absolute",
+                      top: "16px",
+                      right: "16px",
+                      background: "rgba(255, 255, 255, 0.1)",
+                      border: "1px solid rgba(255, 255, 255, 0.2)",
+                      borderRadius: "50%",
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      fontSize: "1.5rem",
+                      color: "#9ca3af",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(255, 255, 255, 0.2)";
+                      e.currentTarget.style.color = "#f3f4f6";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background =
+                        "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.color = "#9ca3af";
+                    }}
+                  >
+                    ×
+                  </button>
+
+                  {/* Success Icon with Animation */}
+                  <div style={{ textAlign: "center", marginBottom: "24px" }}>
+                    <div
+                      style={{
+                        width: "120px",
+                        height: "120px",
+                        margin: "0 auto 20px",
+                        background: "linear-gradient(135deg, #10b981, #059669)",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 8px 32px rgba(16, 185, 129, 0.4)",
+                        animation: "checkmarkBounce 0.6s ease-out",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "64px",
+                          lineHeight: "1",
+                          color: "white",
+                          animation: "checkmarkRotate 0.5s ease-out",
+                        }}
+                      >
+                        ✓
+                      </div>
+                    </div>
+
+                    <h2
+                      style={{
+                        fontSize: "2rem",
+                        fontWeight: "800",
+                        color: "#10b981",
+                        margin: "0 0 12px 0",
+                        textTransform: "uppercase",
+                        letterSpacing: "1px",
+                      }}
+                    >
+                      RSVP Confirmed!
+                    </h2>
+
+                    <p
+                      style={{
+                        fontSize: "1.125rem",
+                        color: "#d1d5db",
+                        margin: "0 0 8px 0",
+                      }}
+                    >
+                      Thank you,{" "}
+                      <strong style={{ color: "#f3f4f6" }}>
+                        {submittedData.name}
+                      </strong>
+                      !
+                    </p>
+
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        color: "#9ca3af",
+                        margin: 0,
+                      }}
+                    >
+                      Your registration has been received
+                    </p>
+                  </div>
+
+                  {/* Booking Details */}
+                  <div
+                    style={{
+                      background: "rgba(16, 185, 129, 0.1)",
+                      border: "1px solid rgba(16, 185, 129, 0.3)",
+                      borderRadius: "12px",
+                      padding: "20px",
+                      marginBottom: "24px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          submittedData.totalAmount > 0
+                            ? "repeat(auto-fit, minmax(150px, 1fr))"
+                            : "1fr",
+                        gap: "16px",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "#9ca3af",
+                            marginBottom: "4px",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
+                          }}
+                        >
+                          Total Guests
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "2rem",
+                            fontWeight: "700",
+                            color: "#10b981",
+                          }}
+                        >
+                          {submittedData.totalGuests}
+                        </div>
+                      </div>
+
+                      {submittedData.totalAmount > 0 && (
+                        <div>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#9ca3af",
+                              marginBottom: "4px",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.5px",
+                            }}
+                          >
+                            Amount to Pay
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "2rem",
+                              fontWeight: "700",
+                              color: "#10b981",
+                            }}
+                          >
+                            £{submittedData.totalAmount}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Payment Instructions - Only show if amount > 0 */}
+                  {submittedData.totalAmount > 0 && (
+                    <div
+                      style={{
+                        background: "#1f2937",
+                        border: "2px solid #f59e0b",
+                        borderRadius: "12px",
+                        padding: "24px",
+                        marginBottom: "24px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            background: "#f59e0b",
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "1.5rem",
+                          }}
+                        >
+                          💳
+                        </div>
+                        <h3
+                          style={{
+                            fontSize: "1.25rem",
+                            fontWeight: "700",
+                            color: "#f59e0b",
+                            margin: 0,
+                          }}
+                        >
+                          IMPORTANT: Complete Payment
+                        </h3>
+                      </div>
+
+                      <div
+                        style={{
+                          background: "rgba(0, 0, 0, 0.3)",
+                          borderRadius: "8px",
+                          padding: "16px",
+                          marginBottom: "16px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "auto 1fr",
+                            gap: "8px 16px",
+                            fontSize: "0.875rem",
+                          }}
+                        >
+                          <strong style={{ color: "#f3f4f6" }}>Bank:</strong>
+                          <span style={{ color: "#d1d5db" }}>HSBC</span>
+
+                          <strong style={{ color: "#f3f4f6" }}>
+                            Account Name:
+                          </strong>
+                          <span style={{ color: "#d1d5db" }}>
+                            Akurana Helping Hands Crawley UK
+                          </span>
+
+                          <strong style={{ color: "#f3f4f6" }}>
+                            Account No:
+                          </strong>
+                          <span
+                            style={{
+                              color: "#d1d5db",
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            92155494
+                          </span>
+
+                          <strong style={{ color: "#f3f4f6" }}>
+                            Sort Code:
+                          </strong>
+                          <span
+                            style={{
+                              color: "#d1d5db",
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            40-18-22
+                          </span>
+
+                          <strong style={{ color: "#f3f4f6" }}>
+                            Reference:
+                          </strong>
+                          <span style={{ color: "#d1d5db" }}>
+                            {submittedData.name}
+                          </span>
+
+                          <strong style={{ color: "#f3f4f6" }}>Amount:</strong>
+                          <span
+                            style={{
+                              color: "#10b981",
+                              fontWeight: "700",
+                              fontSize: "1.125rem",
+                            }}
+                          >
+                            £{submittedData.totalAmount}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          background: "rgba(245, 158, 11, 0.1)",
+                          border: "1px solid rgba(245, 158, 11, 0.3)",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "0.875rem",
+                          color: "#fbbf24",
+                        }}
+                      >
+                        <strong>⏰ Payment Deadline:</strong>{" "}
+                        {new Date(deadlineInfo.deadline).toLocaleDateString(
+                          "en-GB",
+                          {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          }
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(200px, 1fr))",
+                      gap: "12px",
+                      marginBottom: "20px",
+                    }}
+                  >
+                    {/* WhatsApp Button */}
+                    <button
+                      onClick={() => {
+                        const message = encodeURIComponent(
+                          `✅ RSVP Confirmed!\n\n` +
+                            `Name: ${submittedData.name}\n` +
+                            `Guests: ${submittedData.totalGuests}\n` +
+                            `Amount: £${submittedData.totalAmount}\n\n` +
+                            `Bank Details:\n` +
+                            `Account: 92155494\n` +
+                            `Sort Code: 40-18-22\n` +
+                            `Reference: ${submittedData.name}\n\n` +
+                            `AHHC Family Get-Together 2026\n` +
+                            `📅 17 Jan 2026 | St Wilfred School`
+                        );
+
+                        const isMobile = /iPhone|iPad|iPod|Android/i.test(
+                          navigator.userAgent
+                        );
+                        window.open(
+                          isMobile
+                            ? `whatsapp://send?phone=447892804448&text=${message}`
+                            : `https://wa.me/447892804448?text=${message}`,
+                          "_blank"
+                        );
+                      }}
+                      style={{
+                        padding: "14px 20px",
+                        background: "#10b981",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontSize: "1rem",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#059669";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#10b981";
+                        e.currentTarget.style.transform = "translateY(0)";
+                      }}
+                    >
+                      💬 Contact on WhatsApp
+                    </button>
+
+                    {/* Print/Save Button */}
+                    <button
+                      onClick={() => window.print()}
+                      style={{
+                        padding: "14px 20px",
+                        background: "#374151",
+                        color: "#f3f4f6",
+                        border: "1px solid #4b5563",
+                        borderRadius: "8px",
+                        fontSize: "1rem",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#4b5563";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#374151";
+                      }}
+                    >
+                      🖨️ Print Details
+                    </button>
+                  </div>
+
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setShowSuccessModal(false)}
+                    style={{
+                      width: "100%",
+                      padding: "14px",
+                      background: "transparent",
+                      color: "#9ca3af",
+                      border: "2px solid #374151",
+                      borderRadius: "8px",
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#4b5563";
+                      e.currentTarget.style.color = "#f3f4f6";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#374151";
+                      e.currentTarget.style.color = "#9ca3af";
+                    }}
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -969,6 +1449,78 @@ export default function Home() {
             </a>
           </p>
         </div>
+
+        {/* CSS Animations */}
+        <style jsx>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+
+          @keyframes scaleIn {
+            0% {
+              transform: scale(0.8);
+              opacity: 0;
+            }
+            100% {
+              transform: scale(1);
+              opacity: 1;
+            }
+          }
+
+          @keyframes checkmarkBounce {
+            0% {
+              transform: scale(0);
+            }
+            50% {
+              transform: scale(1.2);
+            }
+            100% {
+              transform: scale(1);
+            }
+          }
+
+          @keyframes checkmarkRotate {
+            from {
+              transform: rotate(-180deg) scale(0);
+              opacity: 0;
+            }
+            to {
+              transform: rotate(0deg) scale(1);
+              opacity: 1;
+            }
+          }
+
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            [data-print="true"],
+            [data-print="true"] * {
+              visibility: visible;
+            }
+          }
+
+          @media (max-width: 480px) {
+            [style*="padding: 40px"] {
+              padding: 30px 20px !important;
+            }
+            [style*="fontSize: 2rem"] {
+              font-size: 1.5rem !important;
+            }
+            [style*="width: 120px"][style*="height: 120px"] {
+              width: 80px !important;
+              height: 80px !important;
+            }
+            [style*="fontSize: 64px"] {
+              font-size: 48px !important;
+            }
+          }
+        `}</style>
       </div>
     </div>
   );
