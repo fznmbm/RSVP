@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
 
@@ -9,6 +9,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedRows, setSelectedRows] = useState([]);
   const [sortBy, setSortBy] = useState("date");
@@ -31,6 +32,8 @@ export default function AdminDashboard() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const [isSearching, setIsSearching] = useState(false);
 
   // Mobile menu
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -58,6 +61,18 @@ export default function AdminDashboard() {
 
     return () => clearInterval(interval);
   }, [autoRefresh, search]);
+
+  // Debounce search - ADD THIS ENTIRE BLOCK
+  useEffect(() => {
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+      setIsSearching(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchSettings = async () => {
     try {
@@ -259,11 +274,11 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setCurrentPage(1); // Reset to first page on search
-    fetchRsvps(search);
-  };
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   setCurrentPage(1); // Reset to first page on search
+  //   fetchRsvps(search);
+  // };
 
   const updatePaymentStatus = async (id, status) => {
     try {
@@ -558,12 +573,25 @@ export default function AdminDashboard() {
   // Filter and sort
   const filteredRsvps = rsvps
     .filter((rsvp) => {
-      // Check-in mode: only show not checked in
+      // 1. SEARCH FILTER - Check name, phone, email
+      if (debouncedSearch) {
+        const searchLower = debouncedSearch.toLowerCase();
+        const matchesSearch =
+          rsvp.name.toLowerCase().includes(searchLower) ||
+          rsvp.phone.includes(debouncedSearch) ||
+          (rsvp.email && rsvp.email.toLowerCase().includes(searchLower)) ||
+          (rsvp.paymentReference &&
+            rsvp.paymentReference.toLowerCase().includes(searchLower));
+
+        if (!matchesSearch) return false;
+      }
+
+      // 2. CHECK-IN MODE FILTER
       if (checkInMode) {
         return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
       }
 
-      // Normal filters
+      // 3. STATUS FILTER
       if (statusFilter === "all") return true;
       if (statusFilter === "not-checked") {
         return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
@@ -809,7 +837,6 @@ export default function AdminDashboard() {
             🚪 Logout
           </button>
         </div>
-
         {/* Message */}
         {message.text && (
           <div
@@ -830,7 +857,7 @@ export default function AdminDashboard() {
         {/* Stats Cards - Responsive Grid */}
         {stats && !checkInMode && (
           <div
-            className="stats-grid" // ADD THIS
+            className="stats-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -838,92 +865,124 @@ export default function AdminDashboard() {
               marginBottom: "20px",
             }}
           >
-            {[
-              {
-                label: "Total RSVPs",
-                value: stats.totalRsvps,
-                color: "#667eea",
-                note: "↑ Active Registrations",
-              },
-              {
-                label: "Pending Payments",
-                value: rsvps.filter((r) => r.paymentStatus === "pending")
-                  .length,
-                color: "#f59e0b",
-                note: "Awaiting Confirmation",
-              },
-              {
-                label: "Total Attendees",
-                value: stats.totalPeople,
-                color: "#10b981",
-                note: "All age groups",
-              },
-              {
-                label: "Total Revenue",
-                value: `£${stats.totalAmount}`,
-                color: "#8b5cf6",
-                note: "Expected Collection",
-              },
-              {
-                label: "Under 5",
-                value: stats.totalUnder5,
-                color: "#ec4899",
-                note: "FREE",
-              },
-              {
-                label: "Age 5-12",
-                value: stats.totalAge5to12,
-                color: "#06b6d4",
-                note: "£10 each",
-              },
-              {
-                label: "Age 12+",
-                value: stats.totalAge12plus,
-                color: "#f97316",
-                note: "£15 each",
-              },
-            ].map((stat, i) => (
-              <div
-                key={i}
-                style={{
-                  background: "#1f2937",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-                  borderLeft: `4px solid ${stat.color}`,
-                  border: "1px solid #374151",
-                }}
-              >
+            {(() => {
+              // Calculate stats from FILTERED data
+              const displayRsvps = debouncedSearch ? filteredRsvps : rsvps;
+
+              const calculatedStats = {
+                totalRsvps: displayRsvps.length,
+                pendingPayments: displayRsvps.filter(
+                  (r) => r.paymentStatus === "pending"
+                ).length,
+                totalPeople: displayRsvps.reduce(
+                  (sum, r) => sum + r.under5 + r.age5to12 + r.age12plus,
+                  0
+                ),
+                totalAmount: displayRsvps.reduce(
+                  (sum, r) => sum + r.totalAmount,
+                  0
+                ),
+                totalUnder5: displayRsvps.reduce((sum, r) => sum + r.under5, 0),
+                totalAge5to12: displayRsvps.reduce(
+                  (sum, r) => sum + r.age5to12,
+                  0
+                ),
+                totalAge12plus: displayRsvps.reduce(
+                  (sum, r) => sum + r.age12plus,
+                  0
+                ),
+              };
+
+              return [
+                {
+                  label: "Total RSVPs",
+                  value: calculatedStats.totalRsvps,
+                  color: "#667eea",
+                  note: debouncedSearch
+                    ? "Filtered Results"
+                    : "↑ Active Registrations",
+                  noteColor: debouncedSearch ? "#f59e0b" : "#10b981",
+                },
+                {
+                  label: "Pending Payments",
+                  value: calculatedStats.pendingPayments,
+                  color: "#f59e0b",
+                  note: "Awaiting Confirmation",
+                },
+                {
+                  label: "Total Attendees",
+                  value: calculatedStats.totalPeople,
+                  color: "#10b981",
+                  note: "All age groups",
+                },
+                {
+                  label: "Total Revenue",
+                  value: `£${calculatedStats.totalAmount}`,
+                  color: "#8b5cf6",
+                  note: "Expected Collection",
+                },
+                {
+                  label: "Under 5",
+                  value: calculatedStats.totalUnder5,
+                  color: "#ec4899",
+                  note: "FREE",
+                },
+                {
+                  label: "Age 5-12",
+                  value: calculatedStats.totalAge5to12,
+                  color: "#06b6d4",
+                  note: "£10 each",
+                },
+                {
+                  label: "Age 12+",
+                  value: calculatedStats.totalAge12plus,
+                  color: "#f97316",
+                  note: "£15 each",
+                },
+              ].map((stat, i) => (
                 <div
+                  key={i}
                   style={{
-                    fontSize: "0.75rem",
-                    color: "#9ca3af",
-                    marginBottom: "6px",
-                    fontWeight: "500",
+                    background: "#1f2937",
+                    borderRadius: "12px",
+                    padding: "16px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                    borderLeft: `4px solid ${stat.color}`,
+                    border: "1px solid #374151",
                   }}
                 >
-                  {stat.label}
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#9ca3af",
+                      marginBottom: "6px",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {stat.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "clamp(1.5rem, 4vw, 2rem)",
+                      fontWeight: "700",
+                      color: "#f9fafb",
+                    }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.7rem",
+                      color: stat.noteColor || "#9ca3af",
+                      marginTop: "4px",
+                      fontWeight: stat.noteColor ? "600" : "400", // Bold when colored
+                    }}
+                  >
+                    {stat.note}
+                  </div>
                 </div>
-                <div
-                  style={{
-                    fontSize: "clamp(1.5rem, 4vw, 2rem)",
-                    fontWeight: "700",
-                    color: "#f9fafb",
-                  }}
-                >
-                  {stat.value}
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.7rem",
-                    color: "#9ca3af",
-                    marginTop: "4px",
-                  }}
-                >
-                  {stat.note}
-                </div>
-              </div>
-            ))}
+              ));
+            })()}
           </div>
         )}
 
@@ -986,7 +1045,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-
         {/* Unified Check-In Section - Single Source of Truth */}
         <div
           style={{
@@ -1382,7 +1440,6 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
-
         {/* Deadline Control Section */}
         {settings && !checkInMode && (
           <div
@@ -1482,7 +1539,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-
         {/* Deadline Edit Modal */}
         {showDeadlineModal && (
           <div
@@ -1589,7 +1645,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-
         {/* Filters - Mobile Responsive */}
         <div
           style={{
@@ -1631,24 +1686,46 @@ export default function AdminDashboard() {
             }}
             className={mobileFiltersOpen ? "mobile-filters-open" : ""}
           >
-            <div style={{ flex: "1", minWidth: "200px" }}>
+            <div style={{ flex: "1", minWidth: "200px", position: "relative" }}>
               <input
                 type="text"
-                placeholder="🔍 Search..."
+                placeholder="🔍 Search name, phone, email..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch(e)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
                 style={{
                   width: "100%",
                   padding: "10px 14px",
+                  paddingRight: isSearching ? "40px" : "14px", // Space for spinner
                   border: "1px solid #374151",
                   borderRadius: "8px",
                   fontSize: "0.875rem",
                   outline: "none",
                   background: "#111827",
                   color: "#f3f4f6",
+                  transition: "padding-right 0.2s",
                 }}
               />
+
+              {/* Loading Spinner */}
+              {isSearching && (
+                <div
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: "16px",
+                    height: "16px",
+                    border: "2px solid #374151",
+                    borderTop: "2px solid #667eea",
+                    borderRadius: "50%",
+                    animation: "spin 0.6s linear infinite",
+                  }}
+                />
+              )}
             </div>
 
             <select
@@ -1718,7 +1795,7 @@ export default function AdminDashboard() {
               <button
                 onClick={() => {
                   setSearch("");
-                  fetchRsvps("");
+                  setCurrentPage(1);
                 }}
                 style={{
                   padding: "10px 14px",
@@ -2899,7 +2976,6 @@ export default function AdminDashboard() {
             ))
           )}
         </div>
-
         {/* Pagination */}
         {filteredRsvps.length > 0 && (
           <div
@@ -3300,6 +3376,14 @@ export default function AdminDashboard() {
           }
           50% {
             opacity: 0.5;
+          }
+        }
+        @keyframes spin {
+          from {
+            transform: translateY(-50%) rotate(0deg);
+          }
+          to {
+            transform: translateY(-50%) rotate(360deg);
           }
         }
 

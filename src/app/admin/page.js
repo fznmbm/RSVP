@@ -1,8 +1,96 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "qrcode";
+
+// ADD THIS ENTIRE COMPONENT HERE ↓↓↓
+function QRCodeImage({ checkInCode, rsvpName }) {
+  const [qrUrl, setQrUrl] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    if (!imgRef.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "100px" }
+    );
+
+    observer.observe(imgRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible || !checkInCode) return;
+
+    QRCode.toDataURL(checkInCode, {
+      width: 200,
+      margin: 1,
+      color: { dark: "#000000", light: "#FFFFFF" },
+    })
+      .then(setQrUrl)
+      .catch((err) => console.error("QR generation failed:", err));
+  }, [isVisible, checkInCode]);
+
+  const downloadQr = () => {
+    if (!qrUrl) return;
+    const link = document.createElement("a");
+    link.download = `QR-${rsvpName.replace(/\s+/g, "-")}.png`;
+    link.href = qrUrl;
+    link.click();
+  };
+
+  return (
+    <div ref={imgRef}>
+      {qrUrl ? (
+        <img
+          src={qrUrl}
+          alt="QR Code"
+          style={{
+            width: "80px",
+            height: "80px",
+            border: "2px solid #374151",
+            borderRadius: "8px",
+            cursor: "pointer",
+          }}
+          onClick={downloadQr}
+          title="Click to download"
+        />
+      ) : (
+        <div
+          style={{
+            width: "80px",
+            height: "80px",
+            border: "2px solid #374151",
+            borderRadius: "8px",
+            background: "#1f2937",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "24px",
+              height: "24px",
+              border: "3px solid #374151",
+              borderTop: "3px solid #667eea",
+              borderRadius: "50%",
+              animation: "spin 1s linear infinite",
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [rsvps, setRsvps] = useState([]);
@@ -25,7 +113,7 @@ export default function AdminDashboard() {
   const [qrStats, setQrStats] = useState({ needingCodes: 0, withCodes: 0 });
   const [generatingCodes, setGeneratingCodes] = useState(false);
   const [checkInStats, setCheckInStats] = useState({ checkedIn: 0, total: 0 });
-  const [qrCodeUrls, setQrCodeUrls] = useState({});
+  //const [qrCodeUrls, setQrCodeUrls] = useState({});
   const [autoRefresh, setAutoRefresh] = useState(true); // ADD THIS
   const [checkInMode, setCheckInMode] = useState(false);
 
@@ -57,7 +145,7 @@ export default function AdminDashboard() {
 
     const interval = setInterval(() => {
       fetchRsvps(search); // Refresh data
-    }, 5000); // Every 5 seconds
+    }, 10000); // Every 10 seconds
 
     return () => clearInterval(interval);
   }, [autoRefresh, search]);
@@ -250,21 +338,6 @@ export default function AdminDashboard() {
               ? Math.round((checkedIn.length / paid.length) * 100)
               : 0,
         });
-
-        // Generate QR codes for RSVPs with codes
-        const qrPromises = data.data
-          .filter((r) => r.checkInCode)
-          .map(async (r) => ({
-            id: r._id,
-            url: await generateQrCodeUrl(r.checkInCode),
-          }));
-
-        const qrResults = await Promise.all(qrPromises);
-        const qrMap = {};
-        qrResults.forEach((item) => {
-          if (item.url) qrMap[item.id] = item.url;
-        });
-        setQrCodeUrls(qrMap);
       }
     } catch (error) {
       console.error("Fetch error:", error);
@@ -2206,32 +2279,25 @@ export default function AdminDashboard() {
                             </div>
 
                             {/* QR Code Image */}
-                            {qrCodeUrls[rsvp._id] && (
-                              <div style={{ marginBottom: "8px" }}>
-                                <img
-                                  src={qrCodeUrls[rsvp._id]}
-                                  alt="QR Code"
-                                  style={{
-                                    width: "80px",
-                                    height: "80px",
-                                    border: "2px solid #374151",
-                                    borderRadius: "8px",
-                                    cursor: "pointer",
-                                  }}
-                                  onClick={() =>
-                                    downloadQrCode(
-                                      rsvp.name,
-                                      qrCodeUrls[rsvp._id]
-                                    )
-                                  }
-                                  title="Click to download"
-                                />
+                            <div style={{ marginBottom: "8px" }}>
+                              <QRCodeImage
+                                checkInCode={rsvp.checkInCode}
+                                rsvpName={rsvp.name}
+                              />
 
-                                {/* ADD THIS: WhatsApp Send Button */}
-                                <button
-                                  onClick={() => {
-                                    // Convert data URL to blob
-                                    fetch(qrCodeUrls[rsvp._id])
+                              {/* WhatsApp Send Button */}
+                              <button
+                                onClick={() => {
+                                  // Generate QR on-demand for sharing
+                                  QRCode.toDataURL(rsvp.checkInCode, {
+                                    width: 200,
+                                    margin: 1,
+                                    color: {
+                                      dark: "#000000",
+                                      light: "#FFFFFF",
+                                    },
+                                  }).then((qrDataUrl) => {
+                                    fetch(qrDataUrl)
                                       .then((res) => res.blob())
                                       .then((blob) => {
                                         const file = new File(
@@ -2266,28 +2332,28 @@ export default function AdminDashboard() {
                                           );
                                         }
                                       });
-                                  }}
-                                  style={{
-                                    marginTop: "6px",
-                                    padding: "6px 10px",
-                                    background: "#10b981",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "6px",
-                                    fontSize: "0.7rem",
-                                    cursor: "pointer",
-                                    fontWeight: "600",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "4px",
-                                    width: "100%",
-                                    justifyContent: "center",
-                                  }}
-                                >
-                                  💬 Send
-                                </button>
-                              </div>
-                            )}
+                                  });
+                                }}
+                                style={{
+                                  marginTop: "6px",
+                                  padding: "6px 10px",
+                                  background: "#10b981",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "6px",
+                                  fontSize: "0.7rem",
+                                  cursor: "pointer",
+                                  fontWeight: "600",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  width: "100%",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                💬 Send
+                              </button>
+                            </div>
 
                             {/* Code text with copy button */}
                             <button
@@ -2798,23 +2864,10 @@ export default function AdminDashboard() {
                         }}
                       >
                         {/* QR Code Image */}
-                        {qrCodeUrls[rsvp._id] && (
-                          <img
-                            src={qrCodeUrls[rsvp._id]}
-                            alt="QR"
-                            style={{
-                              width: "80px",
-                              height: "80px",
-                              border: "2px solid #374151",
-                              borderRadius: "8px",
-                              cursor: "pointer",
-                            }}
-                            onClick={() =>
-                              downloadQrCode(rsvp.name, qrCodeUrls[rsvp._id])
-                            }
-                            title="Tap to download"
-                          />
-                        )}
+                        <QRCodeImage
+                          checkInCode={rsvp.checkInCode}
+                          rsvpName={rsvp.name}
+                        />
 
                         {/* Status Badge */}
                         <div
@@ -2851,51 +2904,56 @@ export default function AdminDashboard() {
                         {/* WhatsApp Send Button */}
                         <button
                           onClick={() => {
-                            fetch(qrCodeUrls[rsvp._id])
-                              .then((res) => res.blob())
-                              .then((blob) => {
-                                const file = new File(
-                                  [blob],
-                                  `QR-${rsvp.name}.png`,
-                                  { type: "image/png" }
-                                );
-
-                                if (
-                                  navigator.share &&
-                                  navigator.canShare &&
-                                  navigator.canShare({ files: [file] })
-                                ) {
-                                  navigator
-                                    .share({
-                                      files: [file],
-                                      title: `QR Code - ${rsvp.name}`,
-                                      text: `Check-in QR code for ${rsvp.name}\nAHHC Family Get-Together 2026`,
-                                    })
-                                    .catch((err) =>
-                                      console.log("Share cancelled")
-                                    );
-                                } else {
-                                  const message = encodeURIComponent(
-                                    `✅ QR Code: ${rsvp.name}\nCode: ${
-                                      rsvp.checkInCode
-                                    }\nGuests: ${
-                                      rsvp.under5 +
-                                      rsvp.age5to12 +
-                                      rsvp.age12plus
-                                    }\nAHHC Get-Together 2026`
+                            QRCode.toDataURL(rsvp.checkInCode, {
+                              width: 200,
+                              margin: 1,
+                              color: { dark: "#000000", light: "#FFFFFF" },
+                            }).then((qrDataUrl) => {
+                              fetch(qrDataUrl)
+                                .then((res) => res.blob())
+                                .then((blob) => {
+                                  const file = new File(
+                                    [blob],
+                                    `QR-${rsvp.name}.png`,
+                                    { type: "image/png" }
                                   );
-                                  const isMobile =
-                                    /iPhone|iPad|iPod|Android/i.test(
-                                      navigator.userAgent
+                                  if (
+                                    navigator.share &&
+                                    navigator.canShare &&
+                                    navigator.canShare({ files: [file] })
+                                  ) {
+                                    navigator
+                                      .share({
+                                        files: [file],
+                                        title: `QR Code - ${rsvp.name}`,
+                                        text: `Check-in QR code for ${rsvp.name}\nAHHC Family Get-Together 2026`,
+                                      })
+                                      .catch((err) =>
+                                        console.log("Share cancelled")
+                                      );
+                                  } else {
+                                    const message = encodeURIComponent(
+                                      `✅ QR Code: ${rsvp.name}\nCode: ${
+                                        rsvp.checkInCode
+                                      }\nGuests: ${
+                                        rsvp.under5 +
+                                        rsvp.age5to12 +
+                                        rsvp.age12plus
+                                      }\nAHHC Get-Together 2026`
                                     );
-                                  window.open(
-                                    isMobile
-                                      ? `whatsapp://send?text=${message}`
-                                      : `https://wa.me/?text=${message}`,
-                                    "_blank"
-                                  );
-                                }
-                              });
+                                    const isMobile =
+                                      /iPhone|iPad|iPod|Android/i.test(
+                                        navigator.userAgent
+                                      );
+                                    window.open(
+                                      isMobile
+                                        ? `whatsapp://send?text=${message}`
+                                        : `https://wa.me/?text=${message}`,
+                                      "_blank"
+                                    );
+                                  }
+                                });
+                            });
                           }}
                           style={{
                             padding: "10px 16px",
