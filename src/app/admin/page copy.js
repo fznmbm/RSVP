@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import QRCode from "qrcode";
 
 export default function AdminDashboard() {
   const [rsvps, setRsvps] = useState([]);
@@ -18,6 +19,14 @@ export default function AdminDashboard() {
   const [settings, setSettings] = useState(null);
   const [showDeadlineModal, setShowDeadlineModal] = useState(false);
   const [newDeadline, setNewDeadline] = useState("");
+
+  // ADD THESE 3 NEW STATES:
+  const [qrStats, setQrStats] = useState({ needingCodes: 0, withCodes: 0 });
+  const [generatingCodes, setGeneratingCodes] = useState(false);
+  const [checkInStats, setCheckInStats] = useState({ checkedIn: 0, total: 0 });
+  const [qrCodeUrls, setQrCodeUrls] = useState({});
+  const [autoRefresh, setAutoRefresh] = useState(true); // ADD THIS
+  const [checkInMode, setCheckInMode] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,7 +45,19 @@ export default function AdminDashboard() {
     }
     fetchRsvps();
     fetchSettings(); // ADD THIS LINE
+    fetchQrStats(); // ADD THIS LINE
   }, []);
+
+  // Auto-refresh check-in stats every 10 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      fetchRsvps(search); // Refresh data
+    }, 5000); // Every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, search]);
 
   const fetchSettings = async () => {
     try {
@@ -54,6 +75,78 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Failed to fetch settings:", error);
     }
+  };
+
+  // ADD THESE 3 NEW FUNCTIONS:
+
+  const fetchQrStats = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch("/api/admin/generate-codes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setQrStats(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch QR stats:", error);
+    }
+  };
+
+  const generateCodesForExisting = async () => {
+    if (
+      !confirm(
+        `Generate QR codes for ${qrStats.needingCodes} existing paid RSVPs?`
+      )
+    )
+      return;
+
+    setGeneratingCodes(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch("/api/admin/generate-codes", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: "success", text: data.message });
+        fetchQrStats();
+        fetchRsvps();
+        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to generate codes" });
+    } finally {
+      setGeneratingCodes(false);
+    }
+  };
+
+  const generateQrCodeUrl = async (code) => {
+    if (!code) return null;
+    try {
+      const url = await QRCode.toDataURL(code, {
+        width: 200,
+        margin: 1,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      });
+      return url;
+    } catch (error) {
+      console.error("QR Code generation error:", error);
+      return null;
+    }
+  };
+
+  const downloadQrCode = (rsvpName, qrDataUrl) => {
+    const link = document.createElement("a");
+    link.download = `QR-${rsvpName.replace(/\s+/g, "-")}.png`;
+    link.href = qrDataUrl;
+    link.click();
   };
 
   const updateDeadline = async () => {
@@ -129,6 +222,34 @@ export default function AdminDashboard() {
       if (response.ok) {
         setRsvps(data.data);
         setStats(data.stats);
+
+        // ADD THIS ENTIRE BLOCK:
+        // Calculate check-in stats
+        const paid = data.data.filter((r) => r.paymentStatus === "paid");
+        const checkedIn = paid.filter((r) => r.checkedIn);
+        setCheckInStats({
+          checkedIn: checkedIn.length,
+          total: paid.length,
+          percentage:
+            paid.length > 0
+              ? Math.round((checkedIn.length / paid.length) * 100)
+              : 0,
+        });
+
+        // Generate QR codes for RSVPs with codes
+        const qrPromises = data.data
+          .filter((r) => r.checkInCode)
+          .map(async (r) => ({
+            id: r._id,
+            url: await generateQrCodeUrl(r.checkInCode),
+          }));
+
+        const qrResults = await Promise.all(qrPromises);
+        const qrMap = {};
+        qrResults.forEach((item) => {
+          if (item.url) qrMap[item.id] = item.url;
+        });
+        setQrCodeUrls(qrMap);
       }
     } catch (error) {
       console.error("Fetch error:", error);
@@ -194,6 +315,7 @@ export default function AdminDashboard() {
       });
 
       fetchRsvps(search);
+      fetchQrStats(); // ADD THIS LINE
       setSelectedRows([]);
       setTimeout(() => setMessage({ type: "", text: "" }), 3000);
     } catch (error) {
@@ -221,6 +343,7 @@ export default function AdminDashboard() {
       if (response.ok) {
         setMessage({ type: "success", text: "RSVP deleted successfully" });
         fetchRsvps(search);
+        fetchQrStats(); // ADD THIS LINE
         setActionMenuOpen(null);
         setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       }
@@ -245,6 +368,9 @@ export default function AdminDashboard() {
       "Total Amount",
       "Payment Status",
       "Payment Ref",
+      "Check-In Code", // ADD
+      "Checked In", // ADD
+      "Check-In Time", // ADD
       "Date",
     ];
     const rows = rsvps.map((rsvp) => [
@@ -257,6 +383,9 @@ export default function AdminDashboard() {
       rsvp.totalAmount,
       rsvp.paymentStatus,
       rsvp.paymentReference || "",
+      rsvp.checkInCode || "", // ADD
+      rsvp.checkedIn ? "Yes" : "No", // ADD
+      rsvp.checkInTime ? new Date(rsvp.checkInTime).toLocaleString() : "", // ADD
       new Date(rsvp.createdAt).toLocaleDateString(),
     ]);
 
@@ -428,9 +557,19 @@ export default function AdminDashboard() {
 
   // Filter and sort
   const filteredRsvps = rsvps
-    .filter(
-      (rsvp) => statusFilter === "all" || rsvp.paymentStatus === statusFilter
-    )
+    .filter((rsvp) => {
+      // Check-in mode: only show not checked in
+      if (checkInMode) {
+        return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
+      }
+
+      // Normal filters
+      if (statusFilter === "all") return true;
+      if (statusFilter === "not-checked") {
+        return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
+      }
+      return rsvp.paymentStatus === statusFilter;
+    })
     .sort((a, b) => {
       let aVal, bVal;
       switch (sortBy) {
@@ -468,6 +607,23 @@ export default function AdminDashboard() {
   };
 
   const getStatusBadge = (status, rsvpId) => {
+    const statusConfig = {
+      paid: {
+        bg: "#064e3b",
+        color: "#10b981",
+        border: "#10b981",
+        icon: "🟢",
+      },
+      pending: {
+        bg: "#78350f",
+        color: "#f59e0b",
+        border: "#f59e0b",
+        icon: "🟡",
+      },
+    };
+
+    const config = statusConfig[status] || statusConfig.pending;
+
     return (
       <select
         value={status}
@@ -476,22 +632,22 @@ export default function AdminDashboard() {
           padding: "8px 12px",
           borderRadius: "6px",
           fontSize: "0.875rem",
-          fontWeight: "600",
-          backgroundColor: "#374151",
-          color: status === "pending" ? "#f59e0b" : "#10b981",
-          border: "1px solid #4b5563",
+          fontWeight: "700",
+          backgroundColor: config.bg,
+          color: config.color,
+          border: `2px solid ${config.border}`,
           cursor: "pointer",
           outline: "none",
-          minWidth: "120px",
+          minWidth: "140px",
           appearance: "none",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='white' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "right 8px center",
-          paddingRight: "28px",
+          paddingRight: "32px",
         }}
       >
-        <option value="pending">⏳ Pending</option>
-        <option value="paid">✅ Paid</option>
+        <option value="pending">🟡 Pending</option>
+        <option value="paid">🟢 Paid</option>
       </select>
     );
   };
@@ -518,7 +674,7 @@ export default function AdminDashboard() {
   return (
     <div style={{ minHeight: "100vh", background: "#111827", padding: "16px" }}>
       <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        {/* Header - Mobile Responsive */}
+        {/* Header - Mobile Optimized */}
         <div
           style={{
             background: "#1f2937",
@@ -529,118 +685,131 @@ export default function AdminDashboard() {
             border: "1px solid #374151",
           }}
         >
+          {/* Title */}
+          <div style={{ marginBottom: "16px" }}>
+            <h1
+              style={{
+                fontSize: "clamp(1.25rem, 5vw, 1.75rem)",
+                fontWeight: "700",
+                color: "#f9fafb",
+                marginBottom: "4px",
+              }}
+            >
+              📊 RSVP Management
+            </h1>
+            <p style={{ color: "#9ca3af", fontSize: "0.875rem", margin: 0 }}>
+              AHHC Family Get-Together 2026
+            </p>
+          </div>
+
+          {/* Mode Toggle - Horizontal on Mobile */}
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: "12px",
+              gap: "6px",
+              background: "#111827",
+              padding: "4px",
+              borderRadius: "10px",
+              border: "1px solid #374151",
+              marginBottom: "12px",
             }}
           >
-            <div>
-              <h1
-                style={{
-                  fontSize: "clamp(1.25rem, 4vw, 1.875rem)",
-                  fontWeight: "700",
-                  color: "#f9fafb",
-                  marginBottom: "4px",
-                }}
-              >
-                📊 RSVP Management
-              </h1>
-              <p style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
-                AHHC Family Get-Together 2026
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: "8px", width: "100%" }}>
-              {/* <button
-                onClick={exportToCSV}
-                style={{
-                  flex: "1",
-                  padding: "10px 12px",
-                  background: "#667eea",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                }}
-              >
-                📥 Export CSV
-              </button> */}
-
-              <div style={{ display: "flex", gap: "8px", width: "100%" }}>
-                <button
-                  onClick={copyForWhatsApp}
-                  style={{
-                    flex: "1",
-                    padding: "10px 12px",
-                    background: "#10b981",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  💬 WhatsApp
-                </button>
-                <button
-                  onClick={exportToCSV}
-                  style={{
-                    flex: "1",
-                    padding: "10px 12px",
-                    background: "#667eea",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  📥 Export
-                </button>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    flex: "1",
-                    padding: "10px 12px",
-                    background: "#374151",
-                    color: "#f3f4f6",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  Logout
-                </button>
-              </div>
-              {/* 
-              <button
-                onClick={handleLogout}
-                style={{
-                  flex: "1",
-                  padding: "10px 12px",
-                  background: "#374151",
-                  color: "#f3f4f6",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  fontSize: "0.875rem",
-                }}
-              >
-                Logout
-              </button> */}
-            </div>
+            <button
+              onClick={() => setCheckInMode(false)}
+              style={{
+                flex: 1,
+                padding: "10px",
+                background: !checkInMode ? "#667eea" : "transparent",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+                transition: "all 0.2s",
+              }}
+            >
+              📊 Admin
+            </button>
+            <button
+              onClick={() => setCheckInMode(true)}
+              style={{
+                flex: 1,
+                padding: "10px",
+                background: checkInMode ? "#10b981" : "transparent",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+                transition: "all 0.2s",
+              }}
+            >
+              🎫 Check-In
+            </button>
           </div>
+
+          {/* Action Buttons - Compact */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "8px",
+            }}
+          >
+            <button
+              onClick={copyForWhatsApp}
+              style={{
+                padding: "10px",
+                background: "#10b981",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              💬 WhatsApp
+            </button>
+            <button
+              onClick={exportToCSV}
+              style={{
+                padding: "10px",
+                background: "#667eea",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              📥 Export
+            </button>
+          </div>
+
+          {/* Logout - Full Width Below */}
+          <button
+            onClick={handleLogout}
+            style={{
+              width: "100%",
+              marginTop: "8px",
+              padding: "10px",
+              background: "#374151",
+              color: "#f3f4f6",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+          >
+            🚪 Logout
+          </button>
         </div>
+
         {/* Message */}
         {message.text && (
           <div
@@ -659,8 +828,9 @@ export default function AdminDashboard() {
           </div>
         )}
         {/* Stats Cards - Responsive Grid */}
-        {stats && (
+        {stats && !checkInMode && (
           <div
+            className="stats-grid" // ADD THIS
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -757,8 +927,464 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* QR Code Generation Warning */}
+        {qrStats.needingCodes > 0 && !checkInMode && (
+          <div
+            style={{
+              background: "#7f1d1d",
+              border: "2px solid #ef4444",
+              borderRadius: "12px",
+              padding: "20px",
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "16px",
+              }}
+            >
+              <div>
+                <h3
+                  style={{
+                    fontSize: "1.125rem",
+                    fontWeight: "600",
+                    color: "#fca5a5",
+                    marginBottom: "8px",
+                  }}
+                >
+                  ⚠️ QR Codes Missing
+                </h3>
+                <p
+                  style={{ color: "#fecaca", fontSize: "0.875rem", margin: 0 }}
+                >
+                  <strong>{qrStats.needingCodes}</strong> paid RSVPs don't have
+                  check-in codes yet. Generate codes to enable check-in.
+                </p>
+              </div>
+
+              <button
+                onClick={generateCodesForExisting}
+                disabled={generatingCodes}
+                style={{
+                  padding: "10px 16px",
+                  background: generatingCodes ? "#4b5563" : "#ef4444",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: generatingCodes ? "not-allowed" : "pointer",
+                  fontSize: "0.875rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {generatingCodes ? "⏳ Generating..." : "🎫 Generate Codes"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Unified Check-In Section - Single Source of Truth */}
+        <div
+          style={{
+            background: checkInMode
+              ? "linear-gradient(135deg, #064e3b 0%, #047857 100%)"
+              : "#1f2937",
+            borderRadius: "16px",
+            padding: checkInMode ? "32px" : "20px",
+            marginBottom: "20px",
+            boxShadow: checkInMode
+              ? "0 8px 24px rgba(16, 185, 129, 0.3)"
+              : "0 1px 3px rgba(0,0,0,0.3)",
+            border: checkInMode ? "2px solid #10b981" : "1px solid #374151",
+            textAlign: checkInMode ? "center" : "left",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Background decoration for check-in mode */}
+          {checkInMode && (
+            <div
+              style={{
+                position: "absolute",
+                top: "-50%",
+                right: "-10%",
+                width: "300px",
+                height: "300px",
+                background:
+                  "radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)",
+                borderRadius: "50%",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {checkInMode ? (
+              // CHECK-IN MODE - Big & Bold
+              <>
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#d1fae5",
+                    textTransform: "uppercase",
+                    letterSpacing: "2px",
+                    marginBottom: "20px",
+                    fontWeight: "600",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: "#10b981",
+                      animation: "pulse 2s infinite",
+                    }}
+                  />
+                  🔴 LIVE EVENT CHECK-IN
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "baseline",
+                    gap: "20px",
+                    marginBottom: "24px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "clamp(3rem, 8vw, 4.5rem)",
+                        fontWeight: "800",
+                        color: "#10b981",
+                        lineHeight: "1",
+                        textShadow: "0 2px 10px rgba(16, 185, 129, 0.3)",
+                      }}
+                    >
+                      {checkInStats.checkedIn}
+                    </div>
+                    <div
+                      style={{
+                        color: "#d1fae5",
+                        fontSize: "0.875rem",
+                        marginTop: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Checked In
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: "3rem",
+                      color: "#6ee7b7",
+                      fontWeight: "300",
+                    }}
+                  >
+                    /
+                  </div>
+
+                  <div>
+                    <div
+                      style={{
+                        fontSize: "clamp(3rem, 8vw, 4.5rem)",
+                        fontWeight: "800",
+                        color: "#d1fae5",
+                        lineHeight: "1",
+                      }}
+                    >
+                      {checkInStats.total}
+                    </div>
+                    <div
+                      style={{
+                        color: "#d1fae5",
+                        fontSize: "0.875rem",
+                        marginTop: "8px",
+                        fontWeight: "500",
+                      }}
+                    >
+                      Total Guests
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div
+                  style={{
+                    width: "100%",
+                    maxWidth: "500px",
+                    margin: "0 auto 24px",
+                    height: "20px",
+                    background: "rgba(0, 0, 0, 0.3)",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.2)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${checkInStats.percentage}%`,
+                      height: "100%",
+                      background: "linear-gradient(90deg, #10b981, #34d399)",
+                      transition: "width 0.5s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      paddingRight: "12px",
+                      position: "relative",
+                    }}
+                  >
+                    {checkInStats.percentage > 10 && (
+                      <span
+                        style={{
+                          color: "white",
+                          fontWeight: "700",
+                          fontSize: "0.75rem",
+                          textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+                        }}
+                      >
+                        {checkInStats.percentage}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Primary Action Button */}
+                <button
+                  onClick={() => router.push("/checkin")}
+                  style={{
+                    width: "100%",
+                    maxWidth: "400px",
+                    padding: "20px 32px",
+                    background: "white",
+                    border: "none",
+                    borderRadius: "12px",
+                    color: "#047857",
+                    fontSize: "1.25rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    marginBottom: "16px",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+                    transition: "all 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "12px",
+                    margin: "0 auto 16px",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 6px 16px rgba(0, 0, 0, 0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 4px 12px rgba(0, 0, 0, 0.2)";
+                  }}
+                >
+                  <span style={{ fontSize: "1.5rem" }}>📷</span>
+                  OPEN SCANNER
+                </button>
+
+                {/* Live Toggle */}
+                <button
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  style={{
+                    padding: "10px 20px",
+                    background: "rgba(255, 255, 255, 0.15)",
+                    color: "white",
+                    border: "2px solid rgba(255, 255, 255, 0.3)",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      "rgba(255, 255, 255, 0.25)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background =
+                      "rgba(255, 255, 255, 0.15)";
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: autoRefresh ? "#34d399" : "#6b7280",
+                      animation: autoRefresh ? "pulse 2s infinite" : "none",
+                    }}
+                  />
+                  {autoRefresh ? "🔴 LIVE" : "⏸️ PAUSED"}
+                </button>
+              </>
+            ) : (
+              // ADMIN MODE - Compact
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "16px",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: "200px" }}>
+                  <h3
+                    style={{
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      color: "#f9fafb",
+                      marginBottom: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    🎫 Check-In Progress
+                  </h3>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "baseline",
+                      gap: "12px",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: "2.5rem",
+                        fontWeight: "700",
+                        color: "#10b981",
+                        lineHeight: "1",
+                      }}
+                    >
+                      {checkInStats.checkedIn}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "1.25rem",
+                        color: "#6b7280",
+                      }}
+                    >
+                      / {checkInStats.total}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "2rem",
+                        fontWeight: "700",
+                        color: "#667eea",
+                        marginLeft: "auto",
+                      }}
+                    >
+                      {checkInStats.percentage}%
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "8px",
+                      background: "#374151",
+                      borderRadius: "4px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${checkInStats.percentage}%`,
+                        height: "100%",
+                        background: "linear-gradient(90deg, #10b981, #667eea)",
+                        transition: "width 0.5s",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "8px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <button
+                    onClick={() => router.push("/checkin")}
+                    style={{
+                      padding: "16px 24px",
+                      background: "#10b981",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      fontSize: "1rem",
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    📷 OPEN SCANNER
+                  </button>
+
+                  <button
+                    onClick={() => setAutoRefresh(!autoRefresh)}
+                    style={{
+                      padding: "12px 20px",
+                      background: autoRefresh ? "#667eea" : "#374151",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "8px",
+                        height: "8px",
+                        borderRadius: "50%",
+                        background: autoRefresh ? "#10b981" : "#6b7280",
+                        animation: autoRefresh ? "pulse 2s infinite" : "none",
+                      }}
+                    />
+                    {autoRefresh ? "LIVE" : "Paused"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Deadline Control Section */}
-        {settings && (
+        {settings && !checkInMode && (
           <div
             style={{
               background: "#1f2937",
@@ -1026,26 +1652,29 @@ export default function AdminDashboard() {
             </div>
 
             <select
-              value={statusFilter}
+              value={checkInMode ? "not-checked" : statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
+              disabled={checkInMode}
               style={{
                 padding: "10px 14px",
                 border: "1px solid #374151",
                 borderRadius: "8px",
                 fontSize: "0.875rem",
-                background: "#111827",
-                cursor: "pointer",
+                background: checkInMode ? "#374151" : "#111827",
+                cursor: checkInMode ? "not-allowed" : "pointer",
                 outline: "none",
                 color: "#f3f4f6",
                 minWidth: "120px",
+                opacity: checkInMode ? 0.7 : 1,
               }}
             >
               <option value="all">All Status</option>
               <option value="pending">⏳ Pending</option>
               <option value="paid">✅ Paid</option>
+              <option value="not-checked">⏸️ Not Checked</option>
             </select>
 
             <select
@@ -1261,6 +1890,20 @@ export default function AdminDashboard() {
                   >
                     Status
                   </th>
+
+                  <th
+                    style={{
+                      padding: "16px",
+                      textAlign: "center",
+                      fontSize: "0.75rem",
+                      fontWeight: "600",
+                      color: "#9ca3af",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    QR Code
+                  </th>
+
                   <th
                     style={{
                       padding: "16px",
@@ -1280,7 +1923,7 @@ export default function AdminDashboard() {
                 {currentPageData.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       style={{ padding: "64px", textAlign: "center" }}
                     >
                       <div style={{ fontSize: "3rem", marginBottom: "16px" }}>
@@ -1467,6 +2110,151 @@ export default function AdminDashboard() {
                       <td style={{ padding: "16px" }}>
                         {getStatusBadge(rsvp.paymentStatus, rsvp._id)}
                       </td>
+
+                      <td style={{ padding: "16px", textAlign: "center" }}>
+                        {rsvp.checkInCode ? (
+                          <div>
+                            {/* Check-in status */}
+                            <div
+                              style={{
+                                fontSize: "0.75rem",
+                                color: rsvp.checkedIn ? "#10b981" : "#f59e0b",
+                                fontWeight: "600",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              {rsvp.checkedIn
+                                ? "✅ Checked In"
+                                : "⏳ Not Checked"}
+                            </div>
+
+                            {/* QR Code Image */}
+                            {qrCodeUrls[rsvp._id] && (
+                              <div style={{ marginBottom: "8px" }}>
+                                <img
+                                  src={qrCodeUrls[rsvp._id]}
+                                  alt="QR Code"
+                                  style={{
+                                    width: "80px",
+                                    height: "80px",
+                                    border: "2px solid #374151",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() =>
+                                    downloadQrCode(
+                                      rsvp.name,
+                                      qrCodeUrls[rsvp._id]
+                                    )
+                                  }
+                                  title="Click to download"
+                                />
+
+                                {/* ADD THIS: WhatsApp Send Button */}
+                                <button
+                                  onClick={() => {
+                                    // Convert data URL to blob
+                                    fetch(qrCodeUrls[rsvp._id])
+                                      .then((res) => res.blob())
+                                      .then((blob) => {
+                                        const file = new File(
+                                          [blob],
+                                          `QR-${rsvp.name}.png`,
+                                          { type: "image/png" }
+                                        );
+
+                                        // Check if Web Share API is available
+                                        if (
+                                          navigator.share &&
+                                          navigator.canShare &&
+                                          navigator.canShare({ files: [file] })
+                                        ) {
+                                          navigator
+                                            .share({
+                                              files: [file],
+                                              title: `QR Code for ${rsvp.name}`,
+                                              text: `Check-in QR code for ${rsvp.name} - AHHC Family Get-Together`,
+                                            })
+                                            .catch((err) =>
+                                              console.log("Share cancelled")
+                                            );
+                                        } else {
+                                          // Fallback: Open WhatsApp Web
+                                          const message = encodeURIComponent(
+                                            `QR Code for ${rsvp.name} - AHHC Family Get-Together\nCode: ${rsvp.checkInCode}`
+                                          );
+                                          window.open(
+                                            `https://wa.me/?text=${message}`,
+                                            "_blank"
+                                          );
+                                        }
+                                      });
+                                  }}
+                                  style={{
+                                    marginTop: "6px",
+                                    padding: "6px 10px",
+                                    background: "#10b981",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    fontSize: "0.7rem",
+                                    cursor: "pointer",
+                                    fontWeight: "600",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px",
+                                    width: "100%",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  💬 Send
+                                </button>
+                              </div>
+                            )}
+
+                            {/* Code text with copy button */}
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(rsvp.checkInCode);
+                                setMessage({
+                                  type: "success",
+                                  text: "Code copied!",
+                                });
+                                setTimeout(
+                                  () => setMessage({ type: "", text: "" }),
+                                  2000
+                                );
+                              }}
+                              style={{
+                                padding: "6px 10px",
+                                background: "#374151",
+                                color: "#f3f4f6",
+                                border: "1px solid #4b5563",
+                                borderRadius: "6px",
+                                fontSize: "0.7rem",
+                                cursor: "pointer",
+                                fontWeight: "500",
+                                fontFamily: "monospace",
+                              }}
+                            >
+                              📋 {rsvp.checkInCode.slice(-8)}...
+                            </button>
+                          </div>
+                        ) : rsvp.paymentStatus === "paid" ? (
+                          <div
+                            style={{ fontSize: "0.75rem", color: "#ef4444" }}
+                          >
+                            No Code
+                          </div>
+                        ) : (
+                          <div
+                            style={{ fontSize: "0.75rem", color: "#6b7280" }}
+                          >
+                            -
+                          </div>
+                        )}
+                      </td>
+
                       <td
                         style={{
                           padding: "16px",
@@ -1891,6 +2679,222 @@ export default function AdminDashboard() {
                     {getStatusBadge(rsvp.paymentStatus, rsvp._id)}
                   </div>
                 </div>
+
+                {/* QR CODE SECTION - Optimized Layout */}
+                {rsvp.paymentStatus === "paid" && rsvp.checkInCode && (
+                  <div
+                    style={{
+                      marginTop: "16px",
+                      paddingTop: "16px",
+                      borderTop: "1px solid #374151",
+                    }}
+                  >
+                    {/* Section Header */}
+                    <div
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#9ca3af",
+                        marginBottom: "12px",
+                        fontWeight: "600",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      🎫 Check-In QR Code
+                    </div>
+
+                    {/* Main Content: QR + Buttons */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "stretch",
+                        gap: "12px",
+                      }}
+                    >
+                      {/* LEFT SIDE: QR Code + Status */}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        {/* QR Code Image */}
+                        {qrCodeUrls[rsvp._id] && (
+                          <img
+                            src={qrCodeUrls[rsvp._id]}
+                            alt="QR"
+                            style={{
+                              width: "80px",
+                              height: "80px",
+                              border: "2px solid #374151",
+                              borderRadius: "8px",
+                              cursor: "pointer",
+                            }}
+                            onClick={() =>
+                              downloadQrCode(rsvp.name, qrCodeUrls[rsvp._id])
+                            }
+                            title="Tap to download"
+                          />
+                        )}
+
+                        {/* Status Badge */}
+                        <div
+                          style={{
+                            padding: "4px 8px",
+                            background: rsvp.checkedIn
+                              ? "linear-gradient(135deg, #064e3b, #047857)"
+                              : "linear-gradient(135deg, #78350f, #92400e)",
+                            border: `2px solid ${
+                              rsvp.checkedIn ? "#10b981" : "#f59e0b"
+                            }`,
+                            borderRadius: "6px",
+                            fontSize: "0.7rem",
+                            fontWeight: "700",
+                            color: rsvp.checkedIn ? "#10b981" : "#f59e0b",
+                            textAlign: "center",
+                            width: "80px",
+                          }}
+                        >
+                          {rsvp.checkedIn ? "✅ IN" : "⏳ OUT"}
+                        </div>
+                      </div>
+
+                      {/* RIGHT SIDE: Action Buttons */}
+                      <div
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                          justifyContent: "center",
+                        }}
+                      >
+                        {/* WhatsApp Send Button */}
+                        <button
+                          onClick={() => {
+                            fetch(qrCodeUrls[rsvp._id])
+                              .then((res) => res.blob())
+                              .then((blob) => {
+                                const file = new File(
+                                  [blob],
+                                  `QR-${rsvp.name}.png`,
+                                  { type: "image/png" }
+                                );
+
+                                if (
+                                  navigator.share &&
+                                  navigator.canShare &&
+                                  navigator.canShare({ files: [file] })
+                                ) {
+                                  navigator
+                                    .share({
+                                      files: [file],
+                                      title: `QR Code - ${rsvp.name}`,
+                                      text: `Check-in QR code for ${rsvp.name}\nAHHC Family Get-Together 2026`,
+                                    })
+                                    .catch((err) =>
+                                      console.log("Share cancelled")
+                                    );
+                                } else {
+                                  const message = encodeURIComponent(
+                                    `✅ QR Code: ${rsvp.name}\nCode: ${
+                                      rsvp.checkInCode
+                                    }\nGuests: ${
+                                      rsvp.under5 +
+                                      rsvp.age5to12 +
+                                      rsvp.age12plus
+                                    }\nAHHC Get-Together 2026`
+                                  );
+                                  const isMobile =
+                                    /iPhone|iPad|iPod|Android/i.test(
+                                      navigator.userAgent
+                                    );
+                                  window.open(
+                                    isMobile
+                                      ? `whatsapp://send?text=${message}`
+                                      : `https://wa.me/?text=${message}`,
+                                    "_blank"
+                                  );
+                                }
+                              });
+                          }}
+                          style={{
+                            padding: "10px 16px",
+                            background: "#10b981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "8px",
+                            fontSize: "0.875rem",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                            boxShadow: "0 2px 4px rgba(16, 185, 129, 0.3)",
+                          }}
+                        >
+                          💬 WhatsApp
+                        </button>
+
+                        {/* Copy Code Button */}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(rsvp.checkInCode);
+                            setMessage({
+                              type: "success",
+                              text: "Code copied!",
+                            });
+                            setTimeout(
+                              () => setMessage({ type: "", text: "" }),
+                              2000
+                            );
+                          }}
+                          style={{
+                            padding: "10px 16px",
+                            background: "#374151",
+                            color: "#f3f4f6",
+                            border: "1px solid #4b5563",
+                            borderRadius: "8px",
+                            fontSize: "0.875rem",
+                            cursor: "pointer",
+                            fontWeight: "600",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          📋 Copy Code
+                        </button>
+
+                        {/* Check-in Time (if checked in) */}
+                        {rsvp.checkedIn && rsvp.checkInTime && (
+                          <div
+                            style={{
+                              fontSize: "0.7rem",
+                              color: "#6b7280",
+                              textAlign: "center",
+                              marginTop: "4px",
+                            }}
+                          >
+                            {new Date(rsvp.checkInTime).toLocaleString(
+                              "en-GB",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -2289,7 +3293,21 @@ export default function AdminDashboard() {
       </div>
 
       <style jsx>{`
+        @keyframes pulse {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.5;
+          }
+        }
+
         @media (max-width: 768px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+
           .desktop-table {
             display: none !important;
           }
