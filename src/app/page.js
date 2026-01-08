@@ -22,6 +22,7 @@ export default function Home() {
   // Deadline state
   const [deadlineInfo, setDeadlineInfo] = useState(null);
   const [loadingDeadline, setLoadingDeadline] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch deadline and attendee info
   useEffect(() => {
@@ -113,6 +114,17 @@ export default function Home() {
   const totalAmount = calculateTotal();
   const deadlinePassed = deadlineInfo?.deadlinePassed || false;
   //const deadlinePassed = "2026-01-01T22:00:00.000Z" < new Date().toISOString();
+
+  // Badge color function
+  const getBadgeStyle = (guestCount) => {
+    if (guestCount >= 5) {
+      return { background: "#8b5cf6", icon: "🟣" }; // Purple for 5+
+    } else if (guestCount >= 3) {
+      return { background: "#10b981", icon: "🟢" }; // Green for 3-4
+    } else {
+      return { background: "#3b82f6", icon: "🔵" }; // Blue for 1-2
+    }
+  };
 
   if (loadingDeadline) {
     return (
@@ -289,21 +301,22 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Attendee List */}
+            {/* Attendee List - Clean & Professional */}
             <div
               style={{
                 background: "#111827",
                 border: "1px solid #374151",
                 borderRadius: "12px",
-                padding: "24px",
+                padding: "20px",
               }}
             >
+              {/* Compact Header with Inline Stats */}
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginBottom: "20px",
+                  marginBottom: "16px",
                   flexWrap: "wrap",
                   gap: "12px",
                 }}
@@ -318,105 +331,200 @@ export default function Home() {
                 >
                   👥 Confirmed Attendees
                 </h3>
-                <div style={{ textAlign: "right" }}>
-                  <div
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    fontSize: "0.875rem",
+                    color: "#9ca3af",
+                  }}
+                >
+                  <span
                     style={{
+                      padding: "6px 12px",
+                      background: "#1f2937",
+                      borderRadius: "6px",
+                      fontWeight: "600",
                       color: "#10b981",
-                      fontSize: "1.5rem",
-                      fontWeight: "700",
                     }}
                   >
                     {deadlineInfo.stats.totalPeople} People
-                  </div>
-                  <div style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
+                  </span>
+                  <span style={{ color: "#4b5563" }}>•</span>
+                  <span
+                    style={{
+                      padding: "6px 12px",
+                      background: "#1f2937",
+                      borderRadius: "6px",
+                      fontWeight: "600",
+                      color: "#667eea",
+                    }}
+                  >
                     {deadlineInfo.stats.totalFamilies} Families
-                  </div>
+                  </span>
                 </div>
               </div>
 
-              <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                {deadlineInfo.attendees.map((attendee, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      padding: "16px",
-                      background: "#1f2937",
-                      borderRadius: "8px",
-                      marginBottom: "12px",
-                      border: "1px solid #374151",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: "12px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        flex: 1,
-                      }}
-                    >
+              {/* Search Bar */}
+              <div style={{ marginBottom: "16px" }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Search by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    background: "#1f2937",
+                    border: "1px solid #374151",
+                    borderRadius: "8px",
+                    color: "#f3f4f6",
+                    fontSize: "0.875rem",
+                    outline: "none",
+                    transition: "all 0.2s",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#667eea";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(102, 126, 234, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#374151";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+
+              {/* Attendee List - Scrollable */}
+              <div
+                className="attendee-list"
+                style={{
+                  maxHeight: "500px",
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                }}
+              >
+                {deadlineInfo.attendees
+                  .filter((attendee) =>
+                    attendee.name
+                      .toLowerCase()
+                      .includes(searchQuery.toLowerCase())
+                  )
+                  .map((attendee, index) => {
+                    const badgeStyle = getBadgeStyle(attendee.totalGuests);
+                    return (
                       <div
+                        key={index}
                         style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "50%",
-                          background: "#374151",
+                          padding: "14px",
+                          background: "#1f2937",
+                          borderRadius: "8px",
+                          marginBottom: "10px",
+                          border: "1px solid #374151",
                           display: "flex",
+                          justifyContent: "space-between",
                           alignItems: "center",
-                          justifyContent: "center",
-                          color: "#f3f4f6",
-                          fontWeight: "700",
-                          fontSize: "1rem",
-                          flexShrink: 0,
+                          gap: "12px",
                         }}
                       >
-                        {attendee.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div style={{ minWidth: 0, flex: 1 }}>
                         <div
                           style={{
-                            color: "#f3f4f6",
-                            fontWeight: "600",
-                            fontSize: "1rem",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                            flex: 1,
+                            minWidth: 0,
                           }}
                         >
-                          {attendee.name}
+                          <div
+                            style={{
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "50%",
+                              background: "#374151",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#f3f4f6",
+                              fontWeight: "700",
+                              fontSize: "0.875rem",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {attendee.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div
+                              style={{
+                                color: "#f3f4f6",
+                                fontWeight: "600",
+                                fontSize: "0.9rem",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {attendee.name}
+                            </div>
+                            <div
+                              style={{
+                                color: "#9ca3af",
+                                fontSize: "0.75rem",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {new Date(
+                                attendee.registeredDate
+                              ).toLocaleDateString("en-GB", {
+                                day: "numeric",
+                                month: "short",
+                              })}
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ color: "#9ca3af", fontSize: "0.875rem" }}>
-                          Registered:{" "}
-                          {new Date(attendee.registeredDate).toLocaleDateString(
-                            "en-GB",
-                            {
-                              day: "numeric",
-                              month: "short",
-                            }
-                          )}
+                        <div
+                          style={{
+                            padding: "6px 10px",
+                            background: badgeStyle.background,
+                            borderRadius: "6px",
+                            color: "white",
+                            fontWeight: "700",
+                            fontSize: "0.75rem",
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {badgeStyle.icon} {attendee.totalGuests}
                         </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        padding: "6px 12px",
-                        background: "#10b981",
-                        borderRadius: "6px",
-                        color: "white",
-                        fontWeight: "700",
-                        fontSize: "0.875rem",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {attendee.totalGuests}{" "}
-                      {attendee.totalGuests === 1 ? "person" : "people"}
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
               </div>
+
+              {/* No Results Message */}
+              {searchQuery &&
+                deadlineInfo.attendees.filter((attendee) =>
+                  attendee.name
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+                ).length === 0 && (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "40px 20px",
+                      color: "#9ca3af",
+                    }}
+                  >
+                    <div style={{ fontSize: "2rem", marginBottom: "12px" }}>
+                      🔍
+                    </div>
+                    <p style={{ margin: 0, fontSize: "0.875rem" }}>
+                      No attendees found for "{searchQuery}"
+                    </p>
+                  </div>
+                )}
             </div>
           </>
         ) : (
@@ -1544,6 +1652,31 @@ export default function Home() {
             [style*="fontSize: 64px"] {
               font-size: 48px !important;
             }
+          }
+
+          /* Hide default scrollbar */
+          .attendee-list::-webkit-scrollbar {
+            width: 8px;
+          }
+
+          .attendee-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+          }
+
+          .attendee-list::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+          }
+
+          .attendee-list::-webkit-scrollbar-thumb:hover {
+            background: #5568d3;
+          }
+
+          /* Firefox */
+          .attendee-list {
+            scrollbar-width: thin;
+            scrollbar-color: #667eea rgba(0, 0, 0, 0.2);
           }
         `}</style>
       </div>
