@@ -553,6 +553,12 @@ export default function AdminDashboard() {
       .filter((r) => r.paymentStatus === "paid")
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Sort by date
 
+    const pendingRsvps = rsvps.filter((r) => r.paymentStatus === "pending");
+    const pendingPeople = pendingRsvps.reduce(
+      (sum, r) => sum + r.under5 + r.age5to12 + r.age12plus,
+      0
+    );
+
     // Header
     //let message = `🎉 *AHHC Get-Together 2026*\n`;
     // message += `📅 17th January 2026 | 1:00 PM - 8:00 PM\n`;
@@ -597,8 +603,9 @@ export default function AdminDashboard() {
     message += `   • Age 5-12: ${totalAge5to12}\n`;
     message += `   • Age 12+: ${totalAge12plus}\n`;
     // message += `💷 Total Revenue: £${totalRevenue}\n`;
-    //message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
-    message += `━━━━━━━━━━━━━━━━\n\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `⏳ Awaiting Payment: ${pendingRsvps.length} families | ${pendingPeople} people\n`;
+    message += `━━━━━━━━━━━━━━━━\n`;
     // message += `_Generated: ${new Date().toLocaleString("en-GB")}_`;
 
     // Copy to clipboard and open WhatsApp
@@ -940,7 +947,8 @@ export default function AdminDashboard() {
           >
             {(() => {
               // Calculate stats from FILTERED data
-              const displayRsvps = debouncedSearch ? filteredRsvps : rsvps;
+              //const displayRsvps = debouncedSearch ? filteredRsvps : rsvps;
+              const displayRsvps = rsvps;
 
               const calculatedStats = {
                 totalRsvps: displayRsvps.length,
@@ -971,10 +979,8 @@ export default function AdminDashboard() {
                   label: "Total RSVPs",
                   value: calculatedStats.totalRsvps,
                   color: "#667eea",
-                  note: debouncedSearch
-                    ? "Filtered Results"
-                    : "↑ Active Registrations",
-                  noteColor: debouncedSearch ? "#f59e0b" : "#10b981",
+                  note: "↑ Active Registrations",
+                  noteColor: "#10b981",
                 },
                 {
                   label: "Pending Payments",
