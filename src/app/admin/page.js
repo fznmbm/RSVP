@@ -144,11 +144,11 @@ export default function AdminDashboard() {
     if (!autoRefresh) return;
 
     const interval = setInterval(() => {
-      fetchRsvps(search); // Refresh data
+      fetchRsvps(); // Refresh data
     }, 10000); // Every 10 seconds
 
     return () => clearInterval(interval);
-  }, [autoRefresh, search]);
+  }, [autoRefresh]);
 
   // Debounce search - ADD THIS ENTIRE BLOCK
   useEffect(() => {
@@ -367,7 +367,7 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         setMessage({ type: "success", text: "Status updated successfully" });
-        fetchRsvps(search);
+        fetchRsvps();
         setActionMenuOpen(null);
         setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       }
@@ -402,7 +402,7 @@ export default function AdminDashboard() {
         } marked as ${status}`,
       });
 
-      fetchRsvps(search);
+      fetchRsvps();
       fetchQrStats(); // ADD THIS LINE
       setSelectedRows([]);
       setTimeout(() => setMessage({ type: "", text: "" }), 3000);
@@ -430,7 +430,7 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         setMessage({ type: "success", text: "RSVP deleted successfully" });
-        fetchRsvps(search);
+        fetchRsvps();
         fetchQrStats(); // ADD THIS LINE
         setActionMenuOpen(null);
         setTimeout(() => setMessage({ type: "", text: "" }), 3000);
