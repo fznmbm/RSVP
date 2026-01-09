@@ -554,10 +554,10 @@ export default function AdminDashboard() {
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)); // Sort by date
 
     const pendingRsvps = rsvps.filter((r) => r.paymentStatus === "pending");
-    const pendingPeople = pendingRsvps.reduce(
-      (sum, r) => sum + r.under5 + r.age5to12 + r.age12plus,
-      0
-    );
+    // const pendingPeople = pendingRsvps.reduce(
+    //   (sum, r) => sum + r.under5 + r.age5to12 + r.age12plus,
+    //   0
+    // );
 
     // Header
     //let message = `🎉 *AHHC Get-Together 2026*\n`;
@@ -604,7 +604,7 @@ export default function AdminDashboard() {
     message += `   • Age 12+: ${totalAge12plus}\n`;
     // message += `💷 Total Revenue: £${totalRevenue}\n`;
     message += `━━━━━━━━━━━━━━━━\n`;
-    message += `⏳ Awaiting Payment: ${pendingRsvps.length} families | ${pendingPeople} people\n`;
+    message += `⏳ Awaiting Payment: ${pendingRsvps.length} families \n`;
     message += `━━━━━━━━━━━━━━━━\n`;
     // message += `_Generated: ${new Date().toLocaleString("en-GB")}_`;
 
