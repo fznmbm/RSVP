@@ -603,7 +603,7 @@ export default function AdminDashboard() {
     message += `   • Age 5-12: ${totalAge5to12}\n`;
     message += `   • Age 12+: ${totalAge12plus}\n`;
     // message += `💷 Total Revenue: £${totalRevenue}\n`;
-    message += `━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `━━━━━━━━━━━━━━━━\n`;
     message += `⏳ Awaiting Payment: ${pendingRsvps.length} families | ${pendingPeople} people\n`;
     message += `━━━━━━━━━━━━━━━━\n`;
     // message += `_Generated: ${new Date().toLocaleString("en-GB")}_`;
