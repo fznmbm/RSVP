@@ -33,12 +33,17 @@ export async function GET(request) {
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     // Calculate meal totals
+    // Calculate meal totals
     const mealTotals = {
       under5: {
         "nuggets-chips": 0,
         "not-required": 0,
       },
-      over5: {
+      age5to12: {
+        "rice-curry": 0,
+        "burger-meal": 0,
+      },
+      age12plus: {
         "rice-curry": 0,
         "burger-meal": 0,
       },
@@ -49,8 +54,10 @@ export async function GET(request) {
         rsvp.mealSelections.forEach((meal) => {
           if (meal.ageCategory === "under5") {
             mealTotals.under5[meal.mealChoice]++;
-          } else if (meal.ageCategory === "over5") {
-            mealTotals.over5[meal.mealChoice]++;
+          } else if (meal.ageCategory === "age5to12") {
+            mealTotals.age5to12[meal.mealChoice]++;
+          } else if (meal.ageCategory === "age12plus") {
+            mealTotals.age12plus[meal.mealChoice]++;
           }
         });
       }

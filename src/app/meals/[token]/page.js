@@ -16,7 +16,8 @@ export default function MealSelectionPage() {
 
   // Meal selections state
   const [under5Meals, setUnder5Meals] = useState([]);
-  const [over5Meals, setOver5Meals] = useState([]);
+  const [age5to12Meals, setAge5to12Meals] = useState([]);
+  const [age12plusMeals, setAge12plusMeals] = useState([]);
   const [dietaryRestrictions, setDietaryRestrictions] = useState("");
 
   // Verify token and load data
@@ -50,17 +51,31 @@ export default function MealSelectionPage() {
         }
         setUnder5Meals(under5Array);
 
-        // Over 5 selections
-        const over5Existing = existingSelections.filter(
-          (m) => m.ageCategory === "over5"
+        // Age 5-12 selections
+        const age5to12Existing = existingSelections.filter(
+          (m) => m.ageCategory === "age5to12"
         );
-        const over5Count = data.data.age5to12 + data.data.age12plus;
-        const over5Array = [];
-        for (let i = 0; i < over5Count; i++) {
-          const existing = over5Existing.find((m) => m.personIndex === i + 1);
-          over5Array.push(existing?.mealChoice || "rice-curry");
+        const age5to12Array = [];
+        for (let i = 0; i < data.data.age5to12; i++) {
+          const existing = age5to12Existing.find(
+            (m) => m.personIndex === i + 1
+          );
+          age5to12Array.push(existing?.mealChoice || "rice-curry");
         }
-        setOver5Meals(over5Array);
+        setAge5to12Meals(age5to12Array);
+
+        // Age 12+ selections
+        const age12plusExisting = existingSelections.filter(
+          (m) => m.ageCategory === "age12plus"
+        );
+        const age12plusArray = [];
+        for (let i = 0; i < data.data.age12plus; i++) {
+          const existing = age12plusExisting.find(
+            (m) => m.personIndex === i + 1
+          );
+          age12plusArray.push(existing?.mealChoice || "rice-curry");
+        }
+        setAge12plusMeals(age12plusArray);
 
         // Dietary restrictions
         setDietaryRestrictions(data.data.dietaryRestrictions || "");
@@ -91,10 +106,19 @@ export default function MealSelectionPage() {
       });
     });
 
-    // Over 5
-    over5Meals.forEach((meal, index) => {
+    // Age 5-12
+    age5to12Meals.forEach((meal, index) => {
       selections.push({
-        ageCategory: "over5",
+        ageCategory: "age5to12",
+        personIndex: index + 1,
+        mealChoice: meal,
+      });
+    });
+
+    // Age 12+
+    age12plusMeals.forEach((meal, index) => {
+      selections.push({
+        ageCategory: "age12plus",
         personIndex: index + 1,
         mealChoice: meal,
       });
@@ -243,8 +267,7 @@ export default function MealSelectionPage() {
                   ))}
                 </div>
               )}
-
-              {(rsvpData.age5to12 > 0 || rsvpData.age12plus > 0) && (
+              {rsvpData.age5to12 > 0 && (
                 <div style={{ marginBottom: "16px" }}>
                   <p
                     style={{
@@ -253,16 +276,37 @@ export default function MealSelectionPage() {
                       marginBottom: "8px",
                     }}
                   >
-                    Over 5 ({rsvpData.age5to12 + rsvpData.age12plus}):
+                    Age 5-12 ({rsvpData.age5to12}):
                   </p>
-                  {over5Meals.map((meal, i) => (
+                  {age5to12Meals.map((meal, i) => (
                     <div
                       key={i}
-                      style={{
-                        color: "#f3f4f6",
-                        fontSize: "0.875rem",
-                        marginLeft: "16px",
-                      }}
+                      style={{ color: "#f3f4f6", fontSize: "0.875rem" }}
+                    >
+                      •{" "}
+                      {meal === "rice-curry"
+                        ? "🍛 Rice & Curry"
+                        : "🍔 Burger Meal"}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {rsvpData.age12plus > 0 && (
+                <div>
+                  <p
+                    style={{
+                      color: "#9ca3af",
+                      fontSize: "0.875rem",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Age 12+ ({rsvpData.age12plus}):
+                  </p>
+                  {age12plusMeals.map((meal, i) => (
+                    <div
+                      key={i}
+                      style={{ color: "#f3f4f6", fontSize: "0.875rem" }}
                     >
                       •{" "}
                       {meal === "rice-curry"
@@ -385,7 +429,32 @@ export default function MealSelectionPage() {
                 </div>
               )}
 
-              {(rsvpData.age5to12 > 0 || rsvpData.age12plus > 0) && (
+              {rsvpData.age5to12 > 0 && (
+                <div style={{ marginBottom: "16px" }}>
+                  <p
+                    style={{
+                      color: "#9ca3af",
+                      fontSize: "0.875rem",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Age 5-12 ({rsvpData.age5to12}):
+                  </p>
+                  {age5to12Meals.map((meal, i) => (
+                    <div
+                      key={i}
+                      style={{ color: "#f3f4f6", fontSize: "0.875rem" }}
+                    >
+                      •{" "}
+                      {meal === "rice-curry"
+                        ? "🍛 Rice & Curry"
+                        : "🍔 Burger Meal"}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {rsvpData.age12plus > 0 && (
                 <div>
                   <p
                     style={{
@@ -394,9 +463,9 @@ export default function MealSelectionPage() {
                       marginBottom: "8px",
                     }}
                   >
-                    Over 5 ({rsvpData.age5to12 + rsvpData.age12plus}):
+                    Age 12+ ({rsvpData.age12plus}):
                   </p>
-                  {over5Meals.map((meal, i) => (
+                  {age12plusMeals.map((meal, i) => (
                     <div
                       key={i}
                       style={{ color: "#f3f4f6", fontSize: "0.875rem" }}
@@ -438,7 +507,6 @@ export default function MealSelectionPage() {
   }
 
   // Main form
-  const totalOver5 = rsvpData.age5to12 + rsvpData.age12plus;
 
   return (
     <div style={styles.container}>
@@ -479,6 +547,7 @@ export default function MealSelectionPage() {
 
         <form onSubmit={handleSubmit}>
           {/* Under 5 Selections */}
+          {/* Under 5 Selections */}
           {rsvpData.under5 > 0 && (
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>
@@ -489,52 +558,383 @@ export default function MealSelectionPage() {
               </p>
 
               {under5Meals.map((meal, index) => (
-                <div key={index} style={styles.selectGroup}>
-                  <label style={styles.label}>Child {index + 1}:</label>
-                  <select
-                    value={meal}
-                    onChange={(e) => {
-                      const newMeals = [...under5Meals];
-                      newMeals[index] = e.target.value;
-                      setUnder5Meals(newMeals);
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: "24px",
+                    padding: "16px",
+                    background: "#111827",
+                    borderRadius: "12px",
+                    border: "1px solid #374151",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      color: "#f9fafb",
+                      marginBottom: "12px",
+                      fontSize: "0.95rem",
                     }}
-                    style={styles.select}
-                    required
                   >
-                    <option value="nuggets-chips">🍗 Nuggets & Chips</option>
-                    <option value="not-required">❌ Not Required</option>
-                  </select>
+                    Child {index + 1}:
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "14px",
+                        background:
+                          meal === "nuggets-chips" ? "#1e40af" : "#1f2937",
+                        border: `2px solid ${
+                          meal === "nuggets-chips" ? "#3b82f6" : "#374151"
+                        }`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name={`under5-${index}`}
+                        value="nuggets-chips"
+                        checked={meal === "nuggets-chips"}
+                        onChange={(e) => {
+                          const newMeals = [...under5Meals];
+                          newMeals[index] = e.target.value;
+                          setUnder5Meals(newMeals);
+                        }}
+                        style={{
+                          marginRight: "12px",
+                          width: "20px",
+                          height: "20px",
+                          cursor: "pointer",
+                        }}
+                        required
+                      />
+                      <span
+                        style={{
+                          fontSize: "0.95rem",
+                          fontWeight: "500",
+                          color: "#f3f4f6",
+                        }}
+                      >
+                        🍗 Nuggets & Chips
+                      </span>
+                    </label>
+
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "14px",
+                        background:
+                          meal === "not-required" ? "#1e40af" : "#1f2937",
+                        border: `2px solid ${
+                          meal === "not-required" ? "#3b82f6" : "#374151"
+                        }`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name={`under5-${index}`}
+                        value="not-required"
+                        checked={meal === "not-required"}
+                        onChange={(e) => {
+                          const newMeals = [...under5Meals];
+                          newMeals[index] = e.target.value;
+                          setUnder5Meals(newMeals);
+                        }}
+                        style={{
+                          marginRight: "12px",
+                          width: "20px",
+                          height: "20px",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "0.95rem",
+                          fontWeight: "500",
+                          color: "#f3f4f6",
+                        }}
+                      >
+                        ❌ Not Required
+                      </span>
+                    </label>
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Over 5 Selections */}
-          {totalOver5 > 0 && (
+          {/* Age 5-12 Selections */}
+          {rsvpData.age5to12 > 0 && (
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>
-                👨‍👩‍👧‍👦 Over 5 Years ({totalOver5})
+                🧒 Age 5-12 ({rsvpData.age5to12})
               </h3>
               <p style={styles.sectionDesc}>
-                Select meal preference for everyone age 5 and above
+                Select meal preference for each person aged 5-12 years
               </p>
 
-              {over5Meals.map((meal, index) => (
-                <div key={index} style={styles.selectGroup}>
-                  <label style={styles.label}>Person {index + 1}:</label>
-                  <select
-                    value={meal}
-                    onChange={(e) => {
-                      const newMeals = [...over5Meals];
-                      newMeals[index] = e.target.value;
-                      setOver5Meals(newMeals);
+              {age5to12Meals.map((meal, index) => (
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: "24px",
+                    padding: "16px",
+                    background: "#111827",
+                    borderRadius: "12px",
+                    border: "1px solid #374151",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      color: "#f9fafb",
+                      marginBottom: "12px",
+                      fontSize: "0.95rem",
                     }}
-                    style={styles.select}
-                    required
                   >
-                    <option value="rice-curry">🍛 Rice & Curry</option>
-                    <option value="burger-meal">🍔 Burger Meal</option>
-                  </select>
+                    Person {index + 1}:
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "14px",
+                        background:
+                          meal === "rice-curry" ? "#1e40af" : "#1f2937",
+                        border: `2px solid ${
+                          meal === "rice-curry" ? "#3b82f6" : "#374151"
+                        }`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name={`age5to12-${index}`}
+                        value="rice-curry"
+                        checked={meal === "rice-curry"}
+                        onChange={(e) => {
+                          const newMeals = [...age5to12Meals];
+                          newMeals[index] = e.target.value;
+                          setAge5to12Meals(newMeals);
+                        }}
+                        style={{
+                          marginRight: "12px",
+                          width: "20px",
+                          height: "20px",
+                          cursor: "pointer",
+                        }}
+                        required
+                      />
+                      <span
+                        style={{
+                          fontSize: "0.95rem",
+                          fontWeight: "500",
+                          color: "#f3f4f6",
+                        }}
+                      >
+                        🍛 Rice & Curry
+                      </span>
+                    </label>
+
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "14px",
+                        background:
+                          meal === "burger-meal" ? "#1e40af" : "#1f2937",
+                        border: `2px solid ${
+                          meal === "burger-meal" ? "#3b82f6" : "#374151"
+                        }`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name={`age5to12-${index}`}
+                        value="burger-meal"
+                        checked={meal === "burger-meal"}
+                        onChange={(e) => {
+                          const newMeals = [...age5to12Meals];
+                          newMeals[index] = e.target.value;
+                          setAge5to12Meals(newMeals);
+                        }}
+                        style={{
+                          marginRight: "12px",
+                          width: "20px",
+                          height: "20px",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "0.95rem",
+                          fontWeight: "500",
+                          color: "#f3f4f6",
+                        }}
+                      >
+                        🍔 Burger Meal
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Age 12+ Selections */}
+          {rsvpData.age12plus > 0 && (
+            <div style={styles.section}>
+              <h3 style={styles.sectionTitle}>
+                👨‍👩‍👧‍👦 Age 12+ ({rsvpData.age12plus})
+              </h3>
+              <p style={styles.sectionDesc}>
+                Select meal preference for each person aged 12 and above
+              </p>
+
+              {age12plusMeals.map((meal, index) => (
+                <div
+                  key={index}
+                  style={{
+                    marginBottom: "24px",
+                    padding: "16px",
+                    background: "#111827",
+                    borderRadius: "12px",
+                    border: "1px solid #374151",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      color: "#f9fafb",
+                      marginBottom: "12px",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    Person {index + 1}:
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "12px",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "14px",
+                        background:
+                          meal === "rice-curry" ? "#1e40af" : "#1f2937",
+                        border: `2px solid ${
+                          meal === "rice-curry" ? "#3b82f6" : "#374151"
+                        }`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name={`age12plus-${index}`}
+                        value="rice-curry"
+                        checked={meal === "rice-curry"}
+                        onChange={(e) => {
+                          const newMeals = [...age12plusMeals];
+                          newMeals[index] = e.target.value;
+                          setAge12plusMeals(newMeals);
+                        }}
+                        style={{
+                          marginRight: "12px",
+                          width: "20px",
+                          height: "20px",
+                          cursor: "pointer",
+                        }}
+                        required
+                      />
+                      <span
+                        style={{
+                          fontSize: "0.95rem",
+                          fontWeight: "500",
+                          color: "#f3f4f6",
+                        }}
+                      >
+                        🍛 Rice & Curry
+                      </span>
+                    </label>
+
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: "14px",
+                        background:
+                          meal === "burger-meal" ? "#1e40af" : "#1f2937",
+                        border: `2px solid ${
+                          meal === "burger-meal" ? "#3b82f6" : "#374151"
+                        }`,
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name={`age12plus-${index}`}
+                        value="burger-meal"
+                        checked={meal === "burger-meal"}
+                        onChange={(e) => {
+                          const newMeals = [...age12plusMeals];
+                          newMeals[index] = e.target.value;
+                          setAge12plusMeals(newMeals);
+                        }}
+                        style={{
+                          marginRight: "12px",
+                          width: "20px",
+                          height: "20px",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "0.95rem",
+                          fontWeight: "500",
+                          color: "#f3f4f6",
+                        }}
+                      >
+                        🍔 Burger Meal
+                      </span>
+                    </label>
+                  </div>
                 </div>
               ))}
             </div>

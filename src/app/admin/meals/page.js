@@ -539,21 +539,33 @@ AHHC Team`;
                 gap: "12px",
               }}
             >
+              {/* Under 5 */}
               <div
                 style={{
                   background: "#111827",
                   padding: "16px",
                   borderRadius: "8px",
+                  border: "1px solid #374151",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "0.75rem",
+                    fontSize: "0.7rem",
                     color: "#9ca3af",
                     marginBottom: "4px",
+                    fontWeight: "600",
                   }}
                 >
-                  U5 - Nuggets
+                  Under 5
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#6ee7b7",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Nuggets & Chips
                 </div>
                 <div
                   style={{
@@ -570,16 +582,27 @@ AHHC Team`;
                   background: "#111827",
                   padding: "16px",
                   borderRadius: "8px",
+                  border: "1px solid #374151",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "0.75rem",
+                    fontSize: "0.7rem",
                     color: "#9ca3af",
                     marginBottom: "4px",
+                    fontWeight: "600",
                   }}
                 >
-                  U5 - Not Required
+                  Under 5
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#9ca3af",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Not Required
                 </div>
                 <div
                   style={{
@@ -591,21 +614,34 @@ AHHC Team`;
                   {mealTotals.under5["not-required"]}
                 </div>
               </div>
+
+              {/* Age 5-12 */}
               <div
                 style={{
                   background: "#111827",
                   padding: "16px",
                   borderRadius: "8px",
+                  border: "1px solid #374151",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "0.75rem",
+                    fontSize: "0.7rem",
                     color: "#9ca3af",
                     marginBottom: "4px",
+                    fontWeight: "600",
                   }}
                 >
-                  O5 - Rice & Curry
+                  Age 5-12
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#a5b4fc",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Rice & Curry
                 </div>
                 <div
                   style={{
@@ -614,7 +650,7 @@ AHHC Team`;
                     color: "#667eea",
                   }}
                 >
-                  {mealTotals.over5["rice-curry"]}
+                  {mealTotals.age5to12["rice-curry"]}
                 </div>
               </div>
               <div
@@ -622,16 +658,27 @@ AHHC Team`;
                   background: "#111827",
                   padding: "16px",
                   borderRadius: "8px",
+                  border: "1px solid #374151",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "0.75rem",
+                    fontSize: "0.7rem",
                     color: "#9ca3af",
                     marginBottom: "4px",
+                    fontWeight: "600",
                   }}
                 >
-                  O5 - Burger Meal
+                  Age 5-12
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#fcd34d",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Burger Meal
                 </div>
                 <div
                   style={{
@@ -640,7 +687,83 @@ AHHC Team`;
                     color: "#f59e0b",
                   }}
                 >
-                  {mealTotals.over5["burger-meal"]}
+                  {mealTotals.age5to12["burger-meal"]}
+                </div>
+              </div>
+
+              {/* Age 12+ */}
+              <div
+                style={{
+                  background: "#111827",
+                  padding: "16px",
+                  borderRadius: "8px",
+                  border: "1px solid #374151",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "0.7rem",
+                    color: "#9ca3af",
+                    marginBottom: "4px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Age 12+
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#a5b4fc",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Rice & Curry
+                </div>
+                <div
+                  style={{
+                    fontSize: "clamp(1.5rem, 4vw, 2rem)",
+                    fontWeight: "700",
+                    color: "#667eea",
+                  }}
+                >
+                  {mealTotals.age12plus["rice-curry"]}
+                </div>
+              </div>
+              <div
+                style={{
+                  background: "#111827",
+                  padding: "16px",
+                  borderRadius: "8px",
+                  border: "1px solid #374151",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "0.7rem",
+                    color: "#9ca3af",
+                    marginBottom: "4px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Age 12+
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#fcd34d",
+                    marginBottom: "8px",
+                  }}
+                >
+                  Burger Meal
+                </div>
+                <div
+                  style={{
+                    fontSize: "clamp(1.5rem, 4vw, 2rem)",
+                    fontWeight: "700",
+                    color: "#f59e0b",
+                  }}
+                >
+                  {mealTotals.age12plus["burger-meal"]}
                 </div>
               </div>
             </div>
