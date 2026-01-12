@@ -24,7 +24,7 @@ export async function GET(request) {
     const paidRsvps = await Rsvp.find({
       paymentStatus: "paid",
       mealSelectionToken: { $exists: true },
-    });
+    }).sort({ createdAt: 1 });
 
     // Calculate stats
     const total = paidRsvps.length;
