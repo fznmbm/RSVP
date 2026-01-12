@@ -48,6 +48,36 @@ const RsvpSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+
+  mealSelectionToken: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null values
+  },
+  mealSelectionComplete: {
+    type: Boolean,
+    default: false,
+  },
+  mealSelectionDeadline: {
+    type: Date,
+    default: () => new Date("2026-01-12T22:00:00Z"), // Jan 12, 2026, 10 PM
+  },
+  mealSelections: [
+    {
+      ageCategory: {
+        type: String,
+        enum: ["under5", "over5"],
+      },
+      personIndex: Number, // Which person in that category (1, 2, 3...)
+      mealChoice: {
+        type: String,
+        enum: ["nuggets-chips", "not-required", "rice-curry", "burger-meal"],
+      },
+    },
+  ],
+  dietaryRestrictions: String,
+  mealSelectionSubmittedAt: Date,
+
   // QR Check-in fields (NEW)
   checkInCode: {
     type: String,

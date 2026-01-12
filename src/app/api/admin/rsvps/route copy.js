@@ -2,15 +2,13 @@ import { NextResponse } from "next/server";
 import dbConnect from "../../../../lib/mongodb";
 import Rsvp from "../../../../models/Rsvp";
 
-// Simple auth check - FIXED to accept any valid Bearer token
+// Simple auth check
 function checkAuth(request) {
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return false;
   }
-  const token = authHeader.substring(7);
-  // Accept any non-empty token (since login generates dynamic tokens)
-  return token && token.length > 0;
+  return true;
 }
 
 export async function GET(request) {
@@ -63,6 +61,47 @@ export async function GET(request) {
   }
 }
 
+// export async function PUT(request) {
+//   try {
+//     if (!checkAuth(request)) {
+//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//     }
+
+//     await dbConnect();
+
+//     const body = await request.json();
+//     const { id, paymentStatus, notes } = body;
+
+//     if (!id) {
+//       return NextResponse.json(
+//         { error: "RSVP ID is required" },
+//         { status: 400 }
+//       );
+//     }
+
+//     const updateData = {};
+//     if (paymentStatus) updateData.paymentStatus = paymentStatus;
+//     if (notes !== undefined) updateData.notes = notes;
+
+//     const rsvp = await Rsvp.findByIdAndUpdate(id, updateData, { new: true });
+
+//     if (!rsvp) {
+//       return NextResponse.json({ error: "RSVP not found" }, { status: 404 });
+//     }
+
+//     return NextResponse.json({
+//       success: true,
+//       data: rsvp,
+//     });
+//   } catch (error) {
+//     console.error("Update RSVP error:", error);
+//     return NextResponse.json(
+//       { error: "Failed to update RSVP" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 export async function PUT(request) {
   try {
     if (!checkAuth(request)) {
@@ -72,14 +111,7 @@ export async function PUT(request) {
     await dbConnect();
 
     const body = await request.json();
-    const {
-      id,
-      paymentStatus,
-      notes,
-      mealSelectionToken,
-      mealSelectionComplete,
-      mealSelectionDeadline,
-    } = body;
+    const { id, paymentStatus, notes } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -88,23 +120,18 @@ export async function PUT(request) {
       );
     }
 
-    // Find document first
+    // CHANGED: Find document first
     const rsvp = await Rsvp.findById(id);
 
     if (!rsvp) {
       return NextResponse.json({ error: "RSVP not found" }, { status: 404 });
     }
 
-    // Update fields manually
+    // CHANGED: Update fields manually
     if (paymentStatus) rsvp.paymentStatus = paymentStatus;
     if (notes !== undefined) rsvp.notes = notes;
-    if (mealSelectionToken) rsvp.mealSelectionToken = mealSelectionToken;
-    if (typeof mealSelectionComplete === "boolean")
-      rsvp.mealSelectionComplete = mealSelectionComplete;
-    if (mealSelectionDeadline)
-      rsvp.mealSelectionDeadline = mealSelectionDeadline;
 
-    // Save to trigger pre-save hook
+    // CHANGED: Save to trigger pre-save hook
     await rsvp.save();
 
     return NextResponse.json({
