@@ -20,6 +20,14 @@ export async function POST(request) {
 
     // Check deadline
     const now = new Date();
+
+    // const testDeadline = new Date("2026-01-15T13:55:00.000Z"); // HARDCODED PAST DATE FOR TESTING
+
+    // if (now > testDeadline) {
+    //   // USING TEST DEADLINE
+    //   return Response.json({ error: "Deadline has passed" }, { status: 410 });
+    // }
+
     if (now > rsvp.mealSelectionDeadline) {
       return Response.json({ error: "Deadline has passed" }, { status: 410 });
     }

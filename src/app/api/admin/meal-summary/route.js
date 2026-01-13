@@ -26,6 +26,21 @@ export async function GET(request) {
       mealSelectionToken: { $exists: true },
     }).sort({ createdAt: 1 });
 
+    // Debug logging
+    console.log("===========================================");
+    console.log("MEAL SUMMARY API - DEBUG");
+    console.log("Total RSVPs found:", paidRsvps.length);
+    if (paidRsvps.length > 0) {
+      console.log("First RSVP:");
+      console.log("  Name:", paidRsvps[0].name);
+      console.log("  Deadline:", paidRsvps[0].mealSelectionDeadline);
+      console.log(
+        "  Deadline type:",
+        typeof paidRsvps[0].mealSelectionDeadline
+      );
+    }
+    console.log("===========================================");
+
     // Calculate stats
     const total = paidRsvps.length;
     const completed = paidRsvps.filter((r) => r.mealSelectionComplete).length;
@@ -72,7 +87,8 @@ export async function GET(request) {
       mealSelectionToken: rsvp.mealSelectionToken,
       mealSelections: rsvp.mealSelections || [],
       dietaryRestrictions: rsvp.dietaryRestrictions || "",
-      submittedAt: rsvp.mealSelectionSubmittedAt,
+      submittedAt: rsvp.mealSelectionSubmittedAt?.toISOString() || null,
+      mealSelectionDeadline: rsvp.mealSelectionDeadline?.toISOString() || null, // ADD THIS LINE
       under5: rsvp.under5,
       age5to12: rsvp.age5to12,
       age12plus: rsvp.age12plus,
