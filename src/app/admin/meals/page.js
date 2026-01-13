@@ -174,8 +174,10 @@ AHHC Team`;
       "Phone",
       "Under 5 - Nuggets",
       "Under 5 - Not Required",
-      "Over 5 - Rice & Curry",
-      "Over 5 - Burger Meal",
+      "Age 5-12 - Rice & Curry",
+      "Age 5-12 - Burger Meal",
+      "Age 12+ - Rice & Curry",
+      "Age 12+ - Burger Meal",
       "Dietary Requirements",
       "Status",
       "Submitted At",
@@ -192,14 +194,24 @@ AHHC Team`;
           (m) => m.ageCategory === "under5" && m.mealChoice === "not-required"
         ).length || 0;
 
-      const over5Rice =
+      const age5to12Rice =
         rsvp.mealSelections?.filter(
-          (m) => m.ageCategory === "over5" && m.mealChoice === "rice-curry"
+          (m) => m.ageCategory === "age5to12" && m.mealChoice === "rice-curry"
         ).length || 0;
 
-      const over5Burger =
+      const age5to12Burger =
         rsvp.mealSelections?.filter(
-          (m) => m.ageCategory === "over5" && m.mealChoice === "burger-meal"
+          (m) => m.ageCategory === "age5to12" && m.mealChoice === "burger-meal"
+        ).length || 0;
+
+      const age12plusRice =
+        rsvp.mealSelections?.filter(
+          (m) => m.ageCategory === "age12plus" && m.mealChoice === "rice-curry"
+        ).length || 0;
+
+      const age12plusBurger =
+        rsvp.mealSelections?.filter(
+          (m) => m.ageCategory === "age12plus" && m.mealChoice === "burger-meal"
         ).length || 0;
 
       return [
@@ -207,8 +219,10 @@ AHHC Team`;
         rsvp.phone,
         under5Nuggets,
         under5NotRequired,
-        over5Rice,
-        over5Burger,
+        age5to12Rice,
+        age5to12Burger,
+        age12plusRice,
+        age12plusBurger,
         rsvp.dietaryRestrictions || "",
         rsvp.mealSelectionComplete ? "Complete" : "Pending",
         rsvp.submittedAt ? new Date(rsvp.submittedAt).toLocaleString() : "",
