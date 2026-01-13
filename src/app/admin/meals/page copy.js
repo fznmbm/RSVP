@@ -295,21 +295,12 @@ AHHC Team`;
   };
 
   const filteredRsvps = rsvps.filter((rsvp) => {
-    // Search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      const matchesSearch =
-        rsvp.name.toLowerCase().includes(searchLower) ||
-        rsvp.phone.includes(search);
-      if (!matchesSearch) return false;
-    }
-
-    // Status filter
-    if (statusFilter === "completed" && !rsvp.mealSelectionComplete)
-      return false;
-    if (statusFilter === "pending" && rsvp.mealSelectionComplete) return false;
-
-    return true;
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    return (
+      rsvp.name.toLowerCase().includes(searchLower) ||
+      rsvp.phone.includes(search)
+    );
   });
 
   if (loading) {
@@ -1056,7 +1047,7 @@ AHHC Team`;
           </div>
         )}
 
-        {/* Search & Filters */}
+        {/* Search */}
         <div
           style={{
             background: "#1f2937",
@@ -1080,62 +1071,8 @@ AHHC Team`;
               outline: "none",
               background: "#111827",
               color: "#f3f4f6",
-              marginBottom: "12px",
             }}
           />
-
-          {/* Status Filter Buttons */}
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button
-              onClick={() => setStatusFilter("all")}
-              style={{
-                padding: "8px 16px",
-                background: statusFilter === "all" ? "#667eea" : "#374151",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
-            >
-              All ({rsvps.length})
-            </button>
-            <button
-              onClick={() => setStatusFilter("completed")}
-              style={{
-                padding: "8px 16px",
-                background:
-                  statusFilter === "completed" ? "#10b981" : "#374151",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
-            >
-              ✅ Completed ({stats?.completed || 0})
-            </button>
-            <button
-              onClick={() => setStatusFilter("pending")}
-              style={{
-                padding: "8px 16px",
-                background: statusFilter === "pending" ? "#f59e0b" : "#374151",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "0.875rem",
-                fontWeight: "600",
-                cursor: "pointer",
-                transition: "all 0.2s",
-              }}
-            >
-              ⏳ Pending ({stats?.pending || 0})
-            </button>
-          </div>
         </div>
 
         {/* Desktop Table */}
