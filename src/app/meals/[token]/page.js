@@ -942,14 +942,15 @@ export default function MealSelectionPage() {
 
           {/* Dietary Restrictions */}
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>📝 Dietary Requirements</h3>
             <p style={styles.sectionDesc}>
-              Optional - e.g., allergies, vegetarian, halal, etc.
+              ⚠️ Please specify any Allergies & Medical Dietary Requirements we
+              should be aware of:
             </p>
+
             <textarea
               value={dietaryRestrictions}
               onChange={(e) => setDietaryRestrictions(e.target.value)}
-              placeholder="Enter any dietary requirements or allergies..."
+              placeholder="Example: Severe nut allergy...."
               style={styles.textarea}
               rows="4"
             />
@@ -1100,3 +1101,113 @@ const styles = {
     transition: "all 0.2s",
   },
 };
+
+// Styles - COMPACT VERSION
+// const styles = {
+//   container: {
+//     minHeight: "100vh",
+//     background: "#111827",
+//     padding: "16px",
+//     display: "flex",
+//     justifyContent: "center",
+//     alignItems: "flex-start",
+//   },
+//   card: {
+//     maxWidth: "600px",
+//     width: "100%",
+//     background: "#1f2937",
+//     borderRadius: "16px",
+//     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
+//     border: "1px solid #374151",
+//     marginTop: "16px",
+//   },
+//   header: {
+//     padding: "20px",
+//     borderBottom: "2px solid #374151",
+//     textAlign: "center",
+//     background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+//     borderTopLeftRadius: "16px",
+//     borderTopRightRadius: "16px",
+//   },
+//   title: {
+//     fontSize: "1.5rem",
+//     fontWeight: "700",
+//     color: "white",
+//     marginBottom: "4px",
+//   },
+//   subtitle: {
+//     fontSize: "0.8rem",
+//     color: "rgba(255, 255, 255, 0.8)",
+//   },
+//   section: {
+//     padding: "20px",
+//     borderBottom: "1px solid #374151",
+//   },
+//   infoCard: {
+//     background: "#111827",
+//     padding: "16px",
+//     borderRadius: "12px",
+//     border: "1px solid #374151",
+//   },
+//   sectionTitle: {
+//     fontSize: "1rem",
+//     fontWeight: "600",
+//     color: "#f9fafb",
+//     marginBottom: "6px",
+//   },
+//   sectionDesc: {
+//     fontSize: "0.8rem",
+//     color: "#9ca3af",
+//     marginBottom: "12px",
+//   },
+//   name: {
+//     fontSize: "1.1rem",
+//     fontWeight: "600",
+//     color: "#667eea",
+//     marginBottom: "12px",
+//   },
+//   bookingDetails: {
+//     display: "flex",
+//     gap: "8px",
+//     flexWrap: "wrap",
+//   },
+//   detailBadge: {
+//     padding: "6px 12px",
+//     background: "#374151",
+//     borderRadius: "6px",
+//     fontSize: "0.8rem",
+//     color: "#f3f4f6",
+//     fontWeight: "600",
+//   },
+//   label: {
+//     display: "block",
+//     fontSize: "0.85rem",
+//     fontWeight: "500",
+//     color: "#f3f4f6",
+//     marginBottom: "6px",
+//   },
+//   textarea: {
+//     width: "100%",
+//     padding: "12px",
+//     background: "#111827",
+//     border: "1px solid #4b5563",
+//     borderRadius: "8px",
+//     color: "#f3f4f6",
+//     fontSize: "0.875rem",
+//     outline: "none",
+//     resize: "vertical",
+//     fontFamily: "inherit",
+//   },
+//   submitButton: {
+//     width: "100%",
+//     padding: "16px",
+//     background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+//     color: "white",
+//     border: "none",
+//     borderRadius: "0 0 16px 16px",
+//     fontSize: "1rem",
+//     fontWeight: "700",
+//     cursor: "pointer",
+//     transition: "all 0.2s",
+//   },
+// };

@@ -18,6 +18,10 @@ export default function AdminMealsPage() {
   const [viewingMeal, setViewingMeal] = useState(null);
   const [search, setSearch] = useState("");
 
+  const [showDeadlineModal, setShowDeadlineModal] = useState(false);
+  const [newDeadline, setNewDeadline] = useState("");
+  const [updatingDeadline, setUpdatingDeadline] = useState(false);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -210,6 +214,57 @@ AHHC Team`;
     window.URL.revokeObjectURL(url);
   };
 
+  const updateDeadlineForAll = async () => {
+    if (!newDeadline) {
+      setMessage({ type: "error", text: "Please select a deadline" });
+      return;
+    }
+
+    if (
+      !confirm(
+        `Update meal deadline for ALL ${stats.total} families to ${new Date(
+          newDeadline
+        ).toLocaleString("en-GB")}?`
+      )
+    ) {
+      return;
+    }
+
+    setUpdatingDeadline(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch("/api/admin/update-meal-deadline", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ deadline: newDeadline }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({
+          type: "success",
+          text: `Deadline updated for ${data.count} RSVPs`,
+        });
+        setShowDeadlineModal(false);
+        fetchMealData();
+        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+      } else {
+        setMessage({
+          type: "error",
+          text: data.error || "Failed to update deadline",
+        });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to update deadline" });
+    } finally {
+      setUpdatingDeadline(false);
+    }
+  };
+
   const filteredRsvps = rsvps.filter((rsvp) => {
     if (!search) return true;
     const searchLower = search.toLowerCase();
@@ -304,6 +359,177 @@ AHHC Team`;
             </button>
           </div>
         </div>
+
+        {/* Deadline Control */}
+        <div
+          style={{
+            background: "#1f2937",
+            borderRadius: "12px",
+            padding: "20px",
+            marginBottom: "20px",
+            border: "1px solid #374151",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "16px",
+            }}
+          >
+            <div>
+              <h3
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  color: "#f9fafb",
+                  marginBottom: "8px",
+                }}
+              >
+                ⏰ Submission Deadline
+              </h3>
+              <p style={{ color: "#9ca3af", fontSize: "0.875rem", margin: 0 }}>
+                Current deadline for all meal submissions
+              </p>
+            </div>
+            <button
+              onClick={() => setShowDeadlineModal(true)}
+              style={{
+                padding: "10px 16px",
+                background: "#667eea",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              📅 Change Deadline
+            </button>
+          </div>
+        </div>
+
+        {/* Deadline Modal */}
+        {showDeadlineModal && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0,0,0,0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1000,
+              padding: "20px",
+            }}
+            onClick={() => setShowDeadlineModal(false)}
+          >
+            <div
+              style={{
+                background: "#1f2937",
+                borderRadius: "12px",
+                padding: "32px",
+                maxWidth: "500px",
+                width: "100%",
+                border: "1px solid #374151",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "700",
+                  color: "#f9fafb",
+                  marginBottom: "24px",
+                }}
+              >
+                📅 Update Meal Deadline
+              </h3>
+
+              <div style={{ marginBottom: "24px" }}>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#f3f4f6",
+                    marginBottom: "8px",
+                  }}
+                >
+                  New Deadline Date & Time:
+                </label>
+                <input
+                  type="datetime-local"
+                  value={newDeadline}
+                  onChange={(e) => setNewDeadline(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    background: "#111827",
+                    border: "1px solid #374151",
+                    borderRadius: "8px",
+                    color: "#f3f4f6",
+                    fontSize: "0.9rem",
+                    outline: "none",
+                  }}
+                />
+                <p
+                  style={{
+                    color: "#9ca3af",
+                    fontSize: "0.75rem",
+                    marginTop: "8px",
+                  }}
+                >
+                  This will update the deadline for ALL {stats?.total || 0}{" "}
+                  families
+                </p>
+              </div>
+
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  onClick={() => setShowDeadlineModal(false)}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#374151",
+                    color: "#f3f4f6",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={updateDeadlineForAll}
+                  disabled={updatingDeadline || !newDeadline}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: updatingDeadline ? "#4b5563" : "#667eea",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor:
+                      updatingDeadline || !newDeadline
+                        ? "not-allowed"
+                        : "pointer",
+                  }}
+                >
+                  {updatingDeadline ? "⏳ Updating..." : "✅ Update Deadline"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Message */}
         {message.text && (
