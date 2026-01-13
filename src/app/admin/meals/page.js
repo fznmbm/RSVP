@@ -1158,18 +1158,40 @@ AHHC Team`;
                   </tr>
                 ) : (
                   filteredRsvps.map((rsvp) => (
+                    // <tr
+                    //   key={rsvp._id}
+                    //   style={{
+                    //     borderBottom: "1px solid #374151",
+                    //     transition: "background-color 0.2s",
+                    //   }}
+                    //   onMouseEnter={(e) =>
+                    //     (e.currentTarget.style.backgroundColor = "#374151")
+                    //   }
+                    //   onMouseLeave={(e) =>
+                    //     (e.currentTarget.style.backgroundColor = "transparent")
+                    //   }
+                    // >
+
                     <tr
                       key={rsvp._id}
                       style={{
                         borderBottom: "1px solid #374151",
                         transition: "background-color 0.2s",
+                        backgroundColor: rsvp.dietaryRestrictions
+                          ? "#6f4040"
+                          : "transparent", // Red background if has dietary notes
+                        borderLeft: rsvp.dietaryRestrictions
+                          ? "4px solid #ef4444"
+                          : "none", // Red border indicator
                       }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#374151")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "transparent")
-                      }
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          rsvp.dietaryRestrictions ? "#991b1b" : "#374151";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          rsvp.dietaryRestrictions ? "#7f1d1d" : "transparent";
+                      }}
                     >
                       <td style={{ padding: "16px" }}>
                         <div
@@ -1177,9 +1199,27 @@ AHHC Team`;
                             fontWeight: "600",
                             color: "#f9fafb",
                             marginBottom: "4px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
                           }}
                         >
                           {rsvp.name}
+                          {rsvp.dietaryRestrictions && (
+                            <span
+                              style={{
+                                background: "#ef4444",
+                                color: "white",
+                                padding: "4px 8px",
+                                borderRadius: "6px",
+                                fontSize: "0.7rem",
+                                fontWeight: "700",
+                              }}
+                              title={rsvp.dietaryRestrictions}
+                            >
+                              ⚠️ ALLERGY
+                            </span>
+                          )}
                         </div>
                         <div style={{ fontSize: "0.875rem", color: "#9ca3af" }}>
                           {rsvp.phone}
@@ -1312,11 +1352,16 @@ AHHC Team`;
               <div
                 key={rsvp._id}
                 style={{
-                  background: "#1f2937",
+                  background: rsvp.dietaryRestrictions ? "#6d3939" : "#1f2937",
                   borderRadius: "12px",
                   padding: "16px",
                   marginBottom: "12px",
-                  border: "1px solid #374151",
+                  border: rsvp.dietaryRestrictions
+                    ? "2px solid #ef4444"
+                    : "1px solid #374151",
+                  borderLeft: rsvp.dietaryRestrictions
+                    ? "6px solid #ef4444"
+                    : "1px solid #374151",
                 }}
               >
                 {/* Name */}
