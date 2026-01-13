@@ -1563,7 +1563,7 @@ AHHC Team`;
                   </div>
                 )}
 
-                {viewingMeal.age5to12 + viewingMeal.age12plus > 0 && (
+                {viewingMeal.age5to12 > 0 && (
                   <div style={{ marginBottom: "16px" }}>
                     <h4
                       style={{
@@ -1572,10 +1572,41 @@ AHHC Team`;
                         marginBottom: "8px",
                       }}
                     >
-                      Over 5 ({viewingMeal.age5to12 + viewingMeal.age12plus}):
+                      Age 5-12 ({viewingMeal.age5to12}):
                     </h4>
                     {viewingMeal.mealSelections
-                      ?.filter((m) => m.ageCategory === "over5")
+                      ?.filter((m) => m.ageCategory === "age5to12")
+                      .map((meal, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            color: "#f3f4f6",
+                            fontSize: "0.875rem",
+                            marginLeft: "16px",
+                          }}
+                        >
+                          •{" "}
+                          {meal.mealChoice === "rice-curry"
+                            ? "🍛 Rice & Curry"
+                            : "🍔 Burger Meal"}
+                        </div>
+                      ))}
+                  </div>
+                )}
+
+                {viewingMeal.age12plus > 0 && (
+                  <div style={{ marginBottom: "16px" }}>
+                    <h4
+                      style={{
+                        color: "#9ca3af",
+                        fontSize: "0.875rem",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      Age 12+ ({viewingMeal.age12plus}):
+                    </h4>
+                    {viewingMeal.mealSelections
+                      ?.filter((m) => m.ageCategory === "age12plus")
                       .map((meal, i) => (
                         <div
                           key={i}
