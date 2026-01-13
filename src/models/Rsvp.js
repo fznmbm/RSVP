@@ -60,13 +60,13 @@ const RsvpSchema = new mongoose.Schema({
   },
   mealSelectionDeadline: {
     type: Date,
-    default: () => new Date("2026-01-12T22:00:00Z"), // Jan 12, 2026, 10 PM
+    default: () => new Date("2026-01-17T22:00:00Z"), // Jan 12, 2026, 10 PM
   },
   mealSelections: [
     {
       ageCategory: {
         type: String,
-        enum: ["under5", "over5"],
+        enum: ["under5", "age5to12", "age12plus"], // ✅ UPDATED
       },
       personIndex: Number, // Which person in that category (1, 2, 3...)
       mealChoice: {

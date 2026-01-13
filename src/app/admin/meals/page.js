@@ -21,6 +21,7 @@ export default function AdminMealsPage() {
   const [showDeadlineModal, setShowDeadlineModal] = useState(false);
   const [newDeadline, setNewDeadline] = useState("");
   const [updatingDeadline, setUpdatingDeadline] = useState(false);
+  const [currentDeadline, setCurrentDeadline] = useState(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -104,10 +105,23 @@ export default function AdminMealsPage() {
       }
 
       const data = await response.json();
+      // Debug logging
+      console.log("API Response:", data);
+      console.log("RSVPs count:", data.rsvps?.length);
+      console.log(
+        "First RSVP deadline:",
+        data.rsvps?.[0]?.mealSelectionDeadline
+      );
+
       if (response.ok) {
         setStats(data.stats);
         setMealTotals(data.mealTotals);
         setRsvps(data.rsvps);
+
+        // Set current deadline from first RSVP
+        if (data.rsvps.length > 0 && data.rsvps[0].mealSelectionDeadline) {
+          setCurrentDeadline(data.rsvps[0].mealSelectionDeadline);
+        }
       }
     } catch (error) {
       console.error("Fetch error:", error);
@@ -390,9 +404,31 @@ AHHC Team`;
               >
                 ⏰ Submission Deadline
               </h3>
-              <p style={{ color: "#9ca3af", fontSize: "0.875rem", margin: 0 }}>
-                Current deadline for all meal submissions
-              </p>
+              {currentDeadline ? (
+                <p
+                  style={{
+                    color: "#10b981",
+                    fontSize: "0.95rem",
+                    margin: 0,
+                    fontWeight: "600",
+                  }}
+                >
+                  {new Date(currentDeadline).toLocaleString("en-GB", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </p>
+              ) : (
+                <p
+                  style={{ color: "#9ca3af", fontSize: "0.875rem", margin: 0 }}
+                >
+                  No deadline set
+                </p>
+              )}
             </div>
             <button
               onClick={() => setShowDeadlineModal(true)}

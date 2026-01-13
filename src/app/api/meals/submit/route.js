@@ -1,10 +1,9 @@
-import dbConnect from "../../../../lib/mongodb"; // 4 levels
+import dbConnect from "../../../../lib/mongodb";
 import Rsvp from "../../../../models/Rsvp";
 
 export async function POST(request) {
   try {
     await dbConnect();
-
     const { token, mealSelections, dietaryRestrictions } = await request.json();
 
     // Validate token
@@ -33,23 +32,54 @@ export async function POST(request) {
       );
     }
 
-    // Expected counts
+    // Expected counts (UPDATED)
     const expectedUnder5 = rsvp.under5;
-    const expectedOver5 = rsvp.age5to12 + rsvp.age12plus;
+    const expectedAge5to12 = rsvp.age5to12;
+    const expectedAge12plus = rsvp.age12plus;
 
+    // Filter by new categories (UPDATED)
     const under5Selections = mealSelections.filter(
       (m) => m.ageCategory === "under5"
     );
-    const over5Selections = mealSelections.filter(
-      (m) => m.ageCategory === "over5"
+    const age5to12Selections = mealSelections.filter(
+      (m) => m.ageCategory === "age5to12"
+    );
+    const age12plusSelections = mealSelections.filter(
+      (m) => m.ageCategory === "age12plus"
     );
 
+    // Debug logging
+    console.log("Expected:", {
+      under5: expectedUnder5,
+      age5to12: expectedAge5to12,
+      age12plus: expectedAge12plus,
+    });
+    console.log("Received:", {
+      under5: under5Selections.length,
+      age5to12: age5to12Selections.length,
+      age12plus: age12plusSelections.length,
+    });
+
+    // Validate counts (UPDATED)
     if (
       under5Selections.length !== expectedUnder5 ||
-      over5Selections.length !== expectedOver5
+      age5to12Selections.length !== expectedAge5to12 ||
+      age12plusSelections.length !== expectedAge12plus
     ) {
       return Response.json(
-        { error: "Incomplete meal selections" },
+        {
+          error: "Incomplete meal selections",
+          expected: {
+            under5: expectedUnder5,
+            age5to12: expectedAge5to12,
+            age12plus: expectedAge12plus,
+          },
+          received: {
+            under5: under5Selections.length,
+            age5to12: age5to12Selections.length,
+            age12plus: age12plusSelections.length,
+          },
+        },
         { status: 400 }
       );
     }
