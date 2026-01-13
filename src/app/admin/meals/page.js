@@ -133,7 +133,7 @@ Your booking:
 - ${rsvp.age5to12} x Age 5-12
 - ${rsvp.age12plus} x Age 12+
 
-⏰ Deadline: Wednesday, 14th January 2026 at 8:00PM
+⏰ Deadline: Wednesday, 14th January 2026 at 6:00PM
 
 JazakAllah Khair,
 AHHC Team`;
