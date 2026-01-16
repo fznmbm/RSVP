@@ -742,9 +742,9 @@ export default function AdminDashboard() {
       }
 
       // 2. CHECK-IN MODE FILTER
-      if (checkInMode) {
-        return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
-      }
+      // if (checkInMode) {
+      //   return rsvp.paymentStatus === "paid" && !rsvp.checkedIn;
+      // }
 
       // 3. STATUS FILTER
       if (statusFilter === "all") return true;
@@ -886,59 +886,13 @@ export default function AdminDashboard() {
           </div>
 
           {/* Mode Toggle - Horizontal on Mobile */}
-          <div
-            style={{
-              display: "flex",
-              gap: "6px",
-              background: "#111827",
-              padding: "4px",
-              borderRadius: "10px",
-              border: "1px solid #374151",
-              marginBottom: "12px",
-            }}
-          >
-            <button
-              onClick={() => setCheckInMode(false)}
-              style={{
-                flex: 1,
-                padding: "10px",
-                background: !checkInMode ? "#667eea" : "transparent",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                transition: "all 0.2s",
-              }}
-            >
-              📊 Admin
-            </button>
-            <button
-              onClick={() => setCheckInMode(true)}
-              style={{
-                flex: 1,
-                padding: "10px",
-                background: checkInMode ? "#10b981" : "transparent",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                transition: "all 0.2s",
-              }}
-            >
-              🎫 Check-In
-            </button>
-          </div>
-
-          {/* Action Buttons - Compact */}
+          {/* Core Action Buttons */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: "8px",
+              marginBottom: "8px",
             }}
           >
             <button
@@ -973,12 +927,12 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          {/* Meals Management Button - ADD THIS NEW SECTION */}
+          {/* Meal Management Button */}
           <button
             onClick={() => router.push("/admin/meals")}
             style={{
               width: "100%",
-              marginTop: "8px",
+              marginBottom: "8px",
               padding: "10px",
               background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
               color: "white",
@@ -992,12 +946,52 @@ export default function AdminDashboard() {
             🍽️ Meal Management
           </button>
 
-          {/* Logout - Full Width Below */}
+          {/* Volunteer Tools - Open in New Tab */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "8px",
+              marginBottom: "8px",
+            }}
+          >
+            <button
+              onClick={() => window.open("/checkin", "_blank")}
+              style={{
+                padding: "10px",
+                background: "#7c3aed",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              🎫 Volunteer
+            </button>
+            <button
+              onClick={() => window.open("/checkin/display", "_blank")}
+              style={{
+                padding: "10px",
+                background: "#ec4899",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "600",
+                cursor: "pointer",
+                fontSize: "0.875rem",
+              }}
+            >
+              📺 Display
+            </button>
+          </div>
+
+          {/* Logout */}
           <button
             onClick={handleLogout}
             style={{
               width: "100%",
-              marginTop: "8px",
               padding: "10px",
               background: "#374151",
               color: "#f3f4f6",
@@ -1011,6 +1005,7 @@ export default function AdminDashboard() {
             🚪 Logout
           </button>
         </div>
+
         {/* Message */}
         {message.text && (
           <div
@@ -1029,7 +1024,7 @@ export default function AdminDashboard() {
           </div>
         )}
         {/* Stats Cards - Responsive Grid */}
-        {stats && !checkInMode && (
+        {stats && (
           <div
             className="stats-grid"
             style={{
@@ -1160,7 +1155,7 @@ export default function AdminDashboard() {
         )}
 
         {/* QR Code Generation Warning */}
-        {qrStats.needingCodes > 0 && !checkInMode && (
+        {qrStats.needingCodes > 0 && (
           <div
             style={{
               background: "#7f1d1d",
@@ -1220,7 +1215,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Meal Token Generation Warning */}
-        {mealTokenStats.needingTokens > 0 && !checkInMode && (
+        {mealTokenStats.needingTokens > 0 && (
           <div
             style={{
               background: "#7f1d1d",
@@ -1282,403 +1277,183 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Unified Check-In Section - Single Source of Truth */}
+        {/* Check-In Progress - Admin View Only */}
         <div
           style={{
-            background: checkInMode
-              ? "linear-gradient(135deg, #064e3b 0%, #047857 100%)"
-              : "#1f2937",
-            borderRadius: "16px",
-            padding: checkInMode ? "32px" : "20px",
+            background: "#1f2937",
+            borderRadius: "12px",
+            padding: "20px",
             marginBottom: "20px",
-            boxShadow: checkInMode
-              ? "0 8px 24px rgba(16, 185, 129, 0.3)"
-              : "0 1px 3px rgba(0,0,0,0.3)",
-            border: checkInMode ? "2px solid #10b981" : "1px solid #374151",
-            textAlign: checkInMode ? "center" : "left",
-            position: "relative",
-            overflow: "hidden",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+            border: "1px solid #374151",
           }}
         >
-          {/* Background decoration for check-in mode */}
-          {checkInMode && (
-            <div
-              style={{
-                position: "absolute",
-                top: "-50%",
-                right: "-10%",
-                width: "300px",
-                height: "300px",
-                background:
-                  "radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)",
-                borderRadius: "50%",
-                pointerEvents: "none",
-              }}
-            />
-          )}
-
-          <div style={{ position: "relative", zIndex: 1 }}>
-            {checkInMode ? (
-              // CHECK-IN MODE - Big & Bold
-              <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "16px",
+              marginBottom: "16px",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: "200px" }}>
+              <h3
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  color: "#f9fafb",
+                  marginBottom: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                🎫 Live Check-In Progress
                 <div
                   style={{
-                    fontSize: "0.875rem",
-                    color: "#d1fae5",
-                    textTransform: "uppercase",
-                    letterSpacing: "2px",
-                    marginBottom: "20px",
-                    fontWeight: "600",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: autoRefresh ? "#10b981" : "#6b7280",
+                    animation: autoRefresh ? "pulse 2s infinite" : "none",
                   }}
-                >
-                  <div
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: "#10b981",
-                      animation: "pulse 2s infinite",
-                    }}
-                  />
-                  🔴 LIVE EVENT CHECK-IN
-                </div>
+                />
+              </h3>
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "baseline",
-                    gap: "20px",
-                    marginBottom: "24px",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "clamp(3rem, 8vw, 4.5rem)",
-                        fontWeight: "800",
-                        color: "#10b981",
-                        lineHeight: "1",
-                        textShadow: "0 2px 10px rgba(16, 185, 129, 0.3)",
-                      }}
-                    >
-                      {checkInStats.checkedIn}
-                    </div>
-                    <div
-                      style={{
-                        color: "#d1fae5",
-                        fontSize: "0.875rem",
-                        marginTop: "8px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      Checked In
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: "3rem",
-                      color: "#6ee7b7",
-                      fontWeight: "300",
-                    }}
-                  >
-                    /
-                  </div>
-
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "clamp(3rem, 8vw, 4.5rem)",
-                        fontWeight: "800",
-                        color: "#d1fae5",
-                        lineHeight: "1",
-                      }}
-                    >
-                      {checkInStats.total}
-                    </div>
-                    <div
-                      style={{
-                        color: "#d1fae5",
-                        fontSize: "0.875rem",
-                        marginTop: "8px",
-                        fontWeight: "500",
-                      }}
-                    >
-                      Total Guests
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div
-                  style={{
-                    width: "100%",
-                    maxWidth: "500px",
-                    margin: "0 auto 24px",
-                    height: "20px",
-                    background: "rgba(0, 0, 0, 0.3)",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    boxShadow: "inset 0 2px 4px rgba(0, 0, 0, 0.2)",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${checkInStats.percentage}%`,
-                      height: "100%",
-                      background: "linear-gradient(90deg, #10b981, #34d399)",
-                      transition: "width 0.5s ease",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "flex-end",
-                      paddingRight: "12px",
-                      position: "relative",
-                    }}
-                  >
-                    {checkInStats.percentage > 10 && (
-                      <span
-                        style={{
-                          color: "white",
-                          fontWeight: "700",
-                          fontSize: "0.75rem",
-                          textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
-                        }}
-                      >
-                        {checkInStats.percentage}%
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Primary Action Button */}
-                <button
-                  onClick={() => router.push("/checkin")}
-                  style={{
-                    width: "100%",
-                    maxWidth: "400px",
-                    padding: "20px 32px",
-                    background: "white",
-                    border: "none",
-                    borderRadius: "12px",
-                    color: "#047857",
-                    fontSize: "1.25rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    marginBottom: "16px",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-                    transition: "all 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "12px",
-                    margin: "0 auto 16px",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 6px 16px rgba(0, 0, 0, 0.3)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(0, 0, 0, 0.2)";
-                  }}
-                >
-                  <span style={{ fontSize: "1.5rem" }}>📷</span>
-                  OPEN SCANNER
-                </button>
-
-                {/* Live Toggle */}
-                <button
-                  onClick={() => setAutoRefresh(!autoRefresh)}
-                  style={{
-                    padding: "10px 20px",
-                    background: "rgba(255, 255, 255, 0.15)",
-                    color: "white",
-                    border: "2px solid rgba(255, 255, 255, 0.3)",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background =
-                      "rgba(255, 255, 255, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background =
-                      "rgba(255, 255, 255, 0.15)";
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: autoRefresh ? "#34d399" : "#6b7280",
-                      animation: autoRefresh ? "pulse 2s infinite" : "none",
-                    }}
-                  />
-                  {autoRefresh ? "🔴 LIVE" : "⏸️ PAUSED"}
-                </button>
-              </>
-            ) : (
-              // ADMIN MODE - Compact
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "16px",
+                  alignItems: "baseline",
+                  gap: "12px",
+                  marginBottom: "12px",
                 }}
               >
-                <div style={{ flex: 1, minWidth: "200px" }}>
-                  <h3
-                    style={{
-                      fontSize: "1rem",
-                      fontWeight: "600",
-                      color: "#f9fafb",
-                      marginBottom: "12px",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    🎫 Check-In Progress
-                  </h3>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "baseline",
-                      gap: "12px",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "2.5rem",
-                        fontWeight: "700",
-                        color: "#10b981",
-                        lineHeight: "1",
-                      }}
-                    >
-                      {checkInStats.checkedIn}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "1.25rem",
-                        color: "#6b7280",
-                      }}
-                    >
-                      / {checkInStats.total}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "2rem",
-                        fontWeight: "700",
-                        color: "#667eea",
-                        marginLeft: "auto",
-                      }}
-                    >
-                      {checkInStats.percentage}%
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "8px",
-                      background: "#374151",
-                      borderRadius: "4px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${checkInStats.percentage}%`,
-                        height: "100%",
-                        background: "linear-gradient(90deg, #10b981, #667eea)",
-                        transition: "width 0.5s",
-                      }}
-                    />
-                  </div>
-                </div>
-
                 <div
                   style={{
-                    display: "flex",
-                    gap: "8px",
-                    flexWrap: "wrap",
+                    fontSize: "2.5rem",
+                    fontWeight: "700",
+                    color: "#10b981",
+                    lineHeight: "1",
                   }}
                 >
-                  <button
-                    onClick={() => router.push("/checkin")}
-                    style={{
-                      padding: "16px 24px",
-                      background: "#10b981",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                      fontSize: "1rem",
-                      whiteSpace: "nowrap",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    📷 OPEN SCANNER
-                  </button>
-
-                  <button
-                    onClick={() => setAutoRefresh(!autoRefresh)}
-                    style={{
-                      padding: "12px 20px",
-                      background: autoRefresh ? "#667eea" : "#374151",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "8px",
-                      fontWeight: "600",
-                      cursor: "pointer",
-                      fontSize: "0.875rem",
-                      whiteSpace: "nowrap",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "8px",
-                        height: "8px",
-                        borderRadius: "50%",
-                        background: autoRefresh ? "#10b981" : "#6b7280",
-                        animation: autoRefresh ? "pulse 2s infinite" : "none",
-                      }}
-                    />
-                    {autoRefresh ? "LIVE" : "Paused"}
-                  </button>
+                  {checkInStats.checkedIn}
+                </div>
+                <div
+                  style={{
+                    fontSize: "1.25rem",
+                    color: "#6b7280",
+                  }}
+                >
+                  / {checkInStats.total}
+                </div>
+                <div
+                  style={{
+                    fontSize: "2rem",
+                    fontWeight: "700",
+                    color: "#667eea",
+                    marginLeft: "auto",
+                  }}
+                >
+                  {checkInStats.percentage}%
                 </div>
               </div>
-            )}
+
+              <div
+                style={{
+                  width: "100%",
+                  height: "8px",
+                  background: "#374151",
+                  borderRadius: "4px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${checkInStats.percentage}%`,
+                    height: "100%",
+                    background: "linear-gradient(90deg, #10b981, #667eea)",
+                    transition: "width 0.5s",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              <button
+                onClick={() => window.open("/checkin", "_blank")}
+                style={{
+                  padding: "12px 20px",
+                  background: "#10b981",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  minWidth: "160px",
+                }}
+              >
+                📷 Volunteer Scanner
+              </button>
+
+              <button
+                onClick={() => window.open("/checkin/display", "_blank")}
+                style={{
+                  padding: "12px 20px",
+                  background: "#667eea",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  minWidth: "160px",
+                }}
+              >
+                📺 Public Display
+              </button>
+            </div>
+          </div>
+
+          <div
+            style={{
+              fontSize: "0.75rem",
+              color: "#6b7280",
+              textAlign: "center",
+              padding: "8px",
+              background: "#111827",
+              borderRadius: "6px",
+            }}
+          >
+            🔄 Auto-refreshing every 10 seconds • Last updated:{" "}
+            {new Date().toLocaleTimeString("en-GB", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
           </div>
         </div>
+
         {/* Deadline Control Section */}
-        {settings && !checkInMode && (
+        {settings && (
           <div
             style={{
               background: "#1f2937",
@@ -1966,23 +1741,21 @@ export default function AdminDashboard() {
             </div>
 
             <select
-              value={checkInMode ? "not-checked" : statusFilter}
+              value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              disabled={checkInMode}
               style={{
                 padding: "10px 14px",
                 border: "1px solid #374151",
                 borderRadius: "8px",
                 fontSize: "0.875rem",
-                background: checkInMode ? "#374151" : "#111827",
-                cursor: checkInMode ? "not-allowed" : "pointer",
+                background: "#111827",
+                cursor: "pointer",
                 outline: "none",
                 color: "#f3f4f6",
                 minWidth: "120px",
-                opacity: checkInMode ? 0.7 : 1,
               }}
             >
               <option value="all">All Status</option>
@@ -3198,16 +2971,17 @@ export default function AdminDashboard() {
             ))
           )}
         </div>
-        {/* Pagination */}
+        {/* Desktop Pagination - Enhanced Professional Design */}
         {filteredRsvps.length > 0 && (
           <div
             className="desktop-pagination"
             style={{
               background: "#1f2937",
               borderRadius: "12px",
-              padding: "16px 20px",
+              padding: "20px 24px",
               marginTop: "20px",
               border: "1px solid #374151",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
             }}
           >
             <div
@@ -3215,35 +2989,47 @@ export default function AdminDashboard() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                flexWrap: "wrap",
-                gap: "16px",
+                gap: "24px",
               }}
             >
-              {/* Left side - Row count */}
-              <div style={{ fontSize: "0.875rem", color: "#9ca3af" }}>
-                Showing{" "}
-                <strong style={{ color: "#f3f4f6" }}>{startIndex + 1}</strong>{" "}
-                to{" "}
-                <strong style={{ color: "#f3f4f6" }}>
-                  {Math.min(endIndex, filteredRsvps.length)}
-                </strong>{" "}
-                of{" "}
-                <strong style={{ color: "#f3f4f6" }}>
-                  {filteredRsvps.length}
-                </strong>{" "}
-                RSVPs
-              </div>
-
-              {/* Right side - Navigation */}
+              {/* Left: Records Info */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
-                  flexWrap: "wrap",
+                  gap: "16px",
+                  flex: "0 0 auto",
                 }}
               >
-                {/* Items per page dropdown */}
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#9ca3af",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Showing{" "}
+                  <span
+                    style={{
+                      color: "#667eea",
+                      fontWeight: "700",
+                      fontSize: "0.95rem",
+                    }}
+                  >
+                    {startIndex + 1}–{Math.min(endIndex, filteredRsvps.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span
+                    style={{
+                      color: "#f3f4f6",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {filteredRsvps.length}
+                  </span>
+                </div>
+
+                {/* Items per page selector */}
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
@@ -3260,176 +3046,360 @@ export default function AdminDashboard() {
                     cursor: "pointer",
                     outline: "none",
                     fontWeight: "500",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#667eea";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#4b5563";
                   }}
                 >
-                  <option value="10">10 per page</option>
-                  <option value="20">20 per page</option>
-                  <option value="50">50 per page</option>
-                  <option value="100">100 per page</option>
+                  <option value="10">10 / page</option>
+                  <option value="20">20 / page</option>
+                  <option value="50">50 / page</option>
+                  <option value="100">100 / page</option>
                 </select>
+              </div>
 
-                {/* Navigation buttons container */}
-                <div
+              {/* Right: Navigation Controls */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {/* First Page Button */}
+                <button
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage === 1}
                   style={{
-                    display: "flex",
-                    gap: "4px",
-                    background: "#111827",
-                    padding: "4px",
+                    padding: "10px 16px",
+                    background: currentPage === 1 ? "#1f2937" : "#374151",
+                    color: currentPage === 1 ? "#4b5563" : "#d1d5db",
+                    border: "1px solid #4b5563",
                     borderRadius: "8px",
-                    border: "1px solid #374151",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    transition: "all 0.2s",
+                    opacity: currentPage === 1 ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.background = "#667eea";
+                      e.currentTarget.style.borderColor = "#667eea";
+                      e.currentTarget.style.color = "white";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.background = "#374151";
+                      e.currentTarget.style.borderColor = "#4b5563";
+                      e.currentTarget.style.color = "#d1d5db";
+                    }
                   }}
                 >
-                  {/* First button */}
-                  <button
-                    onClick={() => goToPage(1)}
-                    disabled={currentPage === 1}
-                    style={{
-                      padding: "8px 12px",
-                      background:
-                        currentPage === 1 ? "transparent" : "transparent",
-                      color: currentPage === 1 ? "#4b5563" : "#d1d5db",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentPage !== 1) {
-                        e.currentTarget.style.background = "#374151";
-                        e.currentTarget.style.color = "#f9fafb";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color =
-                        currentPage === 1 ? "#4b5563" : "#d1d5db";
-                    }}
-                  >
-                    First
-                  </button>
+                  First
+                </button>
 
-                  {/* Previous button */}
-                  <button
-                    onClick={() => goToPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    style={{
-                      padding: "8px 10px",
-                      background:
-                        currentPage === 1 ? "transparent" : "transparent",
-                      color: currentPage === 1 ? "#4b5563" : "#d1d5db",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      minWidth: "36px",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentPage !== 1) {
-                        e.currentTarget.style.background = "#374151";
-                        e.currentTarget.style.color = "#f9fafb";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color =
-                        currentPage === 1 ? "#4b5563" : "#d1d5db";
-                    }}
-                  >
-                    ←
-                  </button>
+                {/* Previous Button */}
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: currentPage === 1 ? "#1f2937" : "#374151",
+                    color: currentPage === 1 ? "#4b5563" : "#d1d5db",
+                    border: "1px solid #4b5563",
+                    borderRadius: "8px",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    fontSize: "1.125rem",
+                    fontWeight: "600",
+                    transition: "all 0.2s",
+                    opacity: currentPage === 1 ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.background = "#667eea";
+                      e.currentTarget.style.borderColor = "#667eea";
+                      e.currentTarget.style.color = "white";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.background = "#374151";
+                      e.currentTarget.style.borderColor = "#4b5563";
+                      e.currentTarget.style.color = "#d1d5db";
+                    }
+                  }}
+                >
+                  ←
+                </button>
 
-                  {/* Current page indicator - HIGHLIGHTED */}
-                  <div
-                    style={{
-                      padding: "8px 16px",
-                      background: "#667eea",
-                      color: "white",
-                      borderRadius: "6px",
-                      fontSize: "0.875rem",
-                      fontWeight: "700",
-                      minWidth: "70px",
-                      textAlign: "center",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {currentPage} / {totalPages}
-                  </div>
+                {/* Page Numbers */}
+                {(() => {
+                  const pages = [];
+                  const showEllipsisStart = currentPage > 3;
+                  const showEllipsisEnd = currentPage < totalPages - 2;
 
-                  {/* Next button */}
-                  <button
-                    onClick={() => goToPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    style={{
-                      padding: "8px 10px",
-                      background:
-                        currentPage === totalPages
-                          ? "transparent"
-                          : "transparent",
-                      color: currentPage === totalPages ? "#4b5563" : "#d1d5db",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor:
-                        currentPage === totalPages ? "not-allowed" : "pointer",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      minWidth: "36px",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentPage !== totalPages) {
-                        e.currentTarget.style.background = "#374151";
-                        e.currentTarget.style.color = "#f9fafb";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color =
-                        currentPage === totalPages ? "#4b5563" : "#d1d5db";
-                    }}
-                  >
-                    →
-                  </button>
+                  // Always show first page
+                  if (totalPages > 1) {
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => goToPage(1)}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: currentPage === 1 ? "#667eea" : "#374151",
+                          color: currentPage === 1 ? "white" : "#d1d5db",
+                          border:
+                            currentPage === 1
+                              ? "2px solid #667eea"
+                              : "1px solid #4b5563",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                          fontWeight: currentPage === 1 ? "700" : "600",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (currentPage !== 1) {
+                            e.currentTarget.style.background = "#4b5563";
+                            e.currentTarget.style.color = "white";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (currentPage !== 1) {
+                            e.currentTarget.style.background = "#374151";
+                            e.currentTarget.style.color = "#d1d5db";
+                          }
+                        }}
+                      >
+                        1
+                      </button>
+                    );
+                  }
 
-                  {/* Last button */}
-                  <button
-                    onClick={() => goToPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                    style={{
-                      padding: "8px 12px",
-                      background:
-                        currentPage === totalPages
-                          ? "transparent"
-                          : "transparent",
-                      color: currentPage === totalPages ? "#4b5563" : "#d1d5db",
-                      border: "none",
-                      borderRadius: "6px",
-                      cursor:
-                        currentPage === totalPages ? "not-allowed" : "pointer",
-                      fontSize: "0.875rem",
-                      fontWeight: "600",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (currentPage !== totalPages) {
-                        e.currentTarget.style.background = "#374151";
-                        e.currentTarget.style.color = "#f9fafb";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color =
-                        currentPage === totalPages ? "#4b5563" : "#d1d5db";
-                    }}
-                  >
-                    Last
-                  </button>
-                </div>
+                  // Ellipsis after first page
+                  if (showEllipsisStart) {
+                    pages.push(
+                      <div
+                        key="ellipsis-start"
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#6b7280",
+                          fontSize: "1rem",
+                          fontWeight: "700",
+                        }}
+                      >
+                        •••
+                      </div>
+                    );
+                  }
+
+                  // Pages around current page
+                  const startPage = Math.max(2, currentPage - 1);
+                  const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => goToPage(i)}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: currentPage === i ? "#667eea" : "#374151",
+                          color: currentPage === i ? "white" : "#d1d5db",
+                          border:
+                            currentPage === i
+                              ? "2px solid #667eea"
+                              : "1px solid #4b5563",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                          fontWeight: currentPage === i ? "700" : "600",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (currentPage !== i) {
+                            e.currentTarget.style.background = "#4b5563";
+                            e.currentTarget.style.color = "white";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (currentPage !== i) {
+                            e.currentTarget.style.background = "#374151";
+                            e.currentTarget.style.color = "#d1d5db";
+                          }
+                        }}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+
+                  // Ellipsis before last page
+                  if (showEllipsisEnd) {
+                    pages.push(
+                      <div
+                        key="ellipsis-end"
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#6b7280",
+                          fontSize: "1rem",
+                          fontWeight: "700",
+                        }}
+                      >
+                        •••
+                      </div>
+                    );
+                  }
+
+                  // Always show last page (if more than 1 page)
+                  if (totalPages > 1) {
+                    pages.push(
+                      <button
+                        key={totalPages}
+                        onClick={() => goToPage(totalPages)}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background:
+                            currentPage === totalPages ? "#667eea" : "#374151",
+                          color:
+                            currentPage === totalPages ? "white" : "#d1d5db",
+                          border:
+                            currentPage === totalPages
+                              ? "2px solid #667eea"
+                              : "1px solid #4b5563",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "0.875rem",
+                          fontWeight:
+                            currentPage === totalPages ? "700" : "600",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (currentPage !== totalPages) {
+                            e.currentTarget.style.background = "#4b5563";
+                            e.currentTarget.style.color = "white";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (currentPage !== totalPages) {
+                            e.currentTarget.style.background = "#374151";
+                            e.currentTarget.style.color = "#d1d5db";
+                          }
+                        }}
+                      >
+                        {totalPages}
+                      </button>
+                    );
+                  }
+
+                  return pages;
+                })()}
+
+                {/* Next Button */}
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background:
+                      currentPage === totalPages ? "#1f2937" : "#374151",
+                    color: currentPage === totalPages ? "#4b5563" : "#d1d5db",
+                    border: "1px solid #4b5563",
+                    borderRadius: "8px",
+                    cursor:
+                      currentPage === totalPages ? "not-allowed" : "pointer",
+                    fontSize: "1.125rem",
+                    fontWeight: "600",
+                    transition: "all 0.2s",
+                    opacity: currentPage === totalPages ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.background = "#667eea";
+                      e.currentTarget.style.borderColor = "#667eea";
+                      e.currentTarget.style.color = "white";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.background = "#374151";
+                      e.currentTarget.style.borderColor = "#4b5563";
+                      e.currentTarget.style.color = "#d1d5db";
+                    }
+                  }}
+                >
+                  →
+                </button>
+
+                {/* Last Page Button */}
+                <button
+                  onClick={() => goToPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: "10px 16px",
+                    background:
+                      currentPage === totalPages ? "#1f2937" : "#374151",
+                    color: currentPage === totalPages ? "#4b5563" : "#d1d5db",
+                    border: "1px solid #4b5563",
+                    borderRadius: "8px",
+                    cursor:
+                      currentPage === totalPages ? "not-allowed" : "pointer",
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    transition: "all 0.2s",
+                    opacity: currentPage === totalPages ? 0.5 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.background = "#667eea";
+                      e.currentTarget.style.borderColor = "#667eea";
+                      e.currentTarget.style.color = "white";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.background = "#374151";
+                      e.currentTarget.style.borderColor = "#4b5563";
+                      e.currentTarget.style.color = "#d1d5db";
+                    }
+                  }}
+                >
+                  Last
+                </button>
               </div>
             </div>
           </div>

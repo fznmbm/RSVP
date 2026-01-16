@@ -128,11 +128,60 @@ export default function CheckInDisplay() {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: "flex-start",
           marginBottom: "40px",
         }}
       >
-        <div>
+        {/* Left: Custom Layout */}
+        <div style={{ flex: 1 }}>
+          {/* Top Row: Logo + Subtitle */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              marginBottom: "16px",
+            }}
+          >
+            {/* Logo */}
+            <img
+              src="/logo.png"
+              alt="AHHC Logo"
+              style={{
+                width: "60px",
+                height: "60px",
+                objectFit: "contain",
+                filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))",
+              }}
+            />
+
+            {/* Subtitle Box */}
+            <div
+            // style={{
+            //   padding: "10px 24px",
+            //   background:
+            //     "linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(16, 185, 129, 0.2))",
+            //   border: "2px solid rgba(102, 126, 234, 0.4)",
+            //   borderRadius: "12px",
+            //   boxShadow: "0 4px 12px rgba(102, 126, 234, 0.2)",
+            // }}
+            >
+              <p
+                style={{
+                  fontSize: "1.5rem",
+                  color: "#e0e7ff",
+                  fontWeight: "600",
+                  margin: 0,
+                  letterSpacing: "0.5px",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                AHHC Family Get-Together 2026
+              </p>
+            </div>
+          </div>
+
+          {/* Bottom Row: Title */}
           <h1
             style={{
               fontSize: "3.5rem",
@@ -144,16 +193,9 @@ export default function CheckInDisplay() {
           >
             🎫 LIVE EVENT CHECK-IN
           </h1>
-          <p
-            style={{
-              fontSize: "1.5rem",
-              color: "#9ca3af",
-              margin: "8px 0 0 0",
-            }}
-          >
-            AHHC Family Get-Together 2026
-          </p>
         </div>
+
+        {/* Right: Time/Date - Keep as is */}
         <div style={{ textAlign: "right" }}>
           <div
             style={{

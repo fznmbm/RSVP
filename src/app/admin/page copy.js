@@ -115,7 +115,13 @@ export default function AdminDashboard() {
   const [checkInStats, setCheckInStats] = useState({ checkedIn: 0, total: 0 });
   //const [qrCodeUrls, setQrCodeUrls] = useState({});
   const [autoRefresh, setAutoRefresh] = useState(true); // ADD THIS
-  const [checkInMode, setCheckInMode] = useState(false);
+  //const [checkInMode, setCheckInMode] = useState(false);
+
+  const [mealTokenStats, setMealTokenStats] = useState({
+    needingTokens: 0,
+    withTokens: 0,
+  });
+  const [generatingMealTokens, setGeneratingMealTokens] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -137,6 +143,7 @@ export default function AdminDashboard() {
     fetchRsvps();
     fetchSettings(); // ADD THIS LINE
     fetchQrStats(); // ADD THIS LINE
+    fetchMealTokenStats();
   }, []);
 
   // Auto-refresh check-in stats every 10 seconds
@@ -149,6 +156,13 @@ export default function AdminDashboard() {
 
     return () => clearInterval(interval);
   }, [autoRefresh]);
+
+  // ADD THIS NEW FUNCTION HERE (after line 103):
+  const generateMealToken = () => {
+    return Array.from({ length: 32 }, () =>
+      Math.floor(Math.random() * 16).toString(16)
+    ).join("");
+  };
 
   // Debounce search - ADD THIS ENTIRE BLOCK
   useEffect(() => {
@@ -224,6 +238,51 @@ export default function AdminDashboard() {
       setMessage({ type: "error", text: "Failed to generate codes" });
     } finally {
       setGeneratingCodes(false);
+    }
+  };
+
+  const fetchMealTokenStats = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch("/api/admin/generate-meal-tokens", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setMealTokenStats(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch meal token stats:", error);
+    }
+  };
+
+  const generateMealTokensForExisting = async () => {
+    if (
+      !confirm(
+        `Generate meal tokens for ${mealTokenStats.needingTokens} existing paid RSVPs?`
+      )
+    )
+      return;
+
+    setGeneratingMealTokens(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await fetch("/api/admin/generate-meal-tokens", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ type: "success", text: data.message });
+        fetchMealTokenStats();
+        fetchRsvps();
+        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to generate meal tokens" });
+    } finally {
+      setGeneratingMealTokens(false);
     }
   };
 
@@ -356,13 +415,26 @@ export default function AdminDashboard() {
   const updatePaymentStatus = async (id, status) => {
     try {
       const token = localStorage.getItem("adminToken");
+
+      // Prepare update data
+      const updateData = { id, paymentStatus: status };
+
+      // If marking as paid, generate meal token
+      if (status === "paid") {
+        updateData.mealSelectionToken = generateMealToken();
+        updateData.mealSelectionComplete = false;
+        updateData.mealSelectionDeadline = new Date(
+          "2026-01-12T22:00:00Z"
+        ).toISOString();
+      }
+
       const response = await fetch("/api/admin/rsvps", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id, paymentStatus: status }),
+        body: JSON.stringify(updateData),
       });
 
       if (response.ok) {
@@ -901,6 +973,25 @@ export default function AdminDashboard() {
             </button>
           </div>
 
+          {/* Meals Management Button - ADD THIS NEW SECTION */}
+          <button
+            onClick={() => router.push("/admin/meals")}
+            style={{
+              width: "100%",
+              marginTop: "8px",
+              padding: "10px",
+              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "600",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+            }}
+          >
+            🍽️ Meal Management
+          </button>
+
           {/* Logout - Full Width Below */}
           <button
             onClick={handleLogout}
@@ -1127,6 +1218,70 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Meal Token Generation Warning */}
+        {mealTokenStats.needingTokens > 0 && !checkInMode && (
+          <div
+            style={{
+              background: "#7f1d1d",
+              border: "2px solid #ef4444",
+              borderRadius: "12px",
+              padding: "20px",
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "16px",
+              }}
+            >
+              <div>
+                <h3
+                  style={{
+                    fontSize: "1.125rem",
+                    fontWeight: "600",
+                    color: "#fca5a5",
+                    marginBottom: "8px",
+                  }}
+                >
+                  ⚠️ Meal Tokens Missing
+                </h3>
+                <p
+                  style={{ color: "#fecaca", fontSize: "0.875rem", margin: 0 }}
+                >
+                  <strong>{mealTokenStats.needingTokens}</strong> paid RSVPs
+                  don't have meal selection tokens yet. Generate tokens to
+                  enable meal selection.
+                </p>
+              </div>
+
+              <button
+                onClick={generateMealTokensForExisting}
+                disabled={generatingMealTokens}
+                style={{
+                  padding: "10px 16px",
+                  background: generatingMealTokens ? "#4b5563" : "#ef4444",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: generatingMealTokens ? "not-allowed" : "pointer",
+                  fontSize: "0.875rem",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {generatingMealTokens
+                  ? "⏳ Generating..."
+                  : "🍽️ Generate Meal Tokens"}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Unified Check-In Section - Single Source of Truth */}
         <div
           style={{
@@ -1468,7 +1623,7 @@ export default function AdminDashboard() {
                     flexWrap: "wrap",
                   }}
                 >
-                  <button
+                  {/* <button
                     onClick={() => router.push("/checkin")}
                     style={{
                       padding: "16px 24px",
@@ -1516,7 +1671,7 @@ export default function AdminDashboard() {
                       }}
                     />
                     {autoRefresh ? "LIVE" : "Paused"}
-                  </button>
+                  </button> */}
                 </div>
               </div>
             )}
